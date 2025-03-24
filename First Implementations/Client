@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+#run this on pc
+import socket
+import evdev
+import json
+import sys
+
+# Replace with the Raspberry Pi's IP address on your network
+RASPBERRY_PI_IP = "192.168.1.100"  # <-- Update this to your Pi's IP
+PORT = 5000
+
+# Connect to the Raspberry Pi server
+try:
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((RASPBERRY_PI_IP, PORT))
+    print("Connected to server on Raspberry Pi.")
+except Exception as e:
+    print("Could not connect to server:", e)
+    sys.exit(1)
+
+# Find the Xbox controller from available input devices
+devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+controller = None
+for device in devices:
+    if "Xbox Wireless Controller" in device.name:
+        controller = evdev.InputDevice(device.path)
+        break
+
+if not controller:
+    print("No Xbox Wireless Controller found!")
+    sys.exit(1)
+
+print("Controller connected:", controller.name)
+
+def create_message(command, speed):
+    """Create a JSON message with a newline delimiter."""
+    return (json.dumps({"command": command, "speed": speed}) + "\n").encode('utf-8')
+
+try:
+    # Read events from the controller
+    for event in controller.read_loop():
+        if event.type == evdev.ecodes.EV_ABS:
+            # Right Trigger (assumed to be ABS_GAS) for forward movement
+            if event.code == evdev.ecodes.ABS_GAS:
+                speed = round((event.value / 1023) * 127)
+                message = create_message("forward", speed)
+                client.send(message)
+                print(f"Sent forward command with speed: {speed}")
+            # Left Trigger (assumed to be ABS_BRAKE) for backward movement
+            elif event.code == evdev.ecodes.ABS_BRAKE:
+                speed = round((event.value / 1023) * 127)
+                message = create_message("backward", speed)
+                client.send(message)
+                print(f"Sent backward command with speed: {speed}")
+except KeyboardInterrupt:
+    print("Exiting...")
+    client.close()
+    sys.exit(0)
