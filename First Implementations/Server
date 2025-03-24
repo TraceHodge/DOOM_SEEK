@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+#run this on rasp pi 5
+import socket
+import threading
+import serial
+import json
+import sys
+
+# Establish serial connection to Sabertooth
+try:
+    ser = serial.Serial('/dev/serial0', 9600, timeout=1)  # Update port if necessary
+    print("Serial connection established with Sabertooth.")
+except Exception as e:
+    print(f"Error opening serial port: {e}")
+    sys.exit(1)
+
+def send_packatized_command(address, command, value):
+    """Send a packetized command to Sabertooth."""
+    try:
+        # Compute a 7-bit checksum
+        checksum = (address + command + value) & 0x7F
+        packet = bytes([address, command, value, checksum])
+        ser.write(packet)
+    except Exception as e:
+        print(f"Error sending command: {e}")
+
+def handle_client(conn, addr):
+    """Handle incoming messages from a connected client."""
+    print(f"Connected by {addr}")
+    buffer = ""
+    try:
+        while True:
+            data = conn.recv(1024)
+            if not data:
+                break
+            buffer += data.decode('utf-8')
+            # Process full messages delimited by newline
+            while '\n' in buffer:
+                line, buffer = buffer.split('\n', 1)
+                try:
+                    msg = json.loads(line)
+                    command = msg.get("command")
+                    speed = int(msg.get("speed", 0))
+                    print(f"Received command: {command}, speed: {speed}")
+                    
+                    # Map command to Sabertooth channel commands:
+                    if command == "forward":
+                        send_packatized_command(128, 0, speed)  # Motor 1 forward
+                        send_packatized_command(128, 4, speed)  # Motor 2 forward
+                    elif command == "backward":
+                        send_packatized_command(128, 1, speed)  # Motor 1 backward
+                        send_packatized_command(128, 5, speed)  # Motor 2 backward
+                    # Add additional command mappings if needed
+                except Exception as e:
+                    print("Error processing message:", e)
+    except Exception as e:
+        print("Connection error:", e)
+    finally:
+        print(f"Closing connection from {addr}")
+        conn.close()
+
+def start_server():
+    """Start the TCP server and listen for connections."""
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind(('0.0.0.0', 5000))
+    server.listen(5)
+    print("Server listening on port 5000...")
+    
+    while True:
+        conn, addr = server.accept()
+        threading.Thread(target=handle_client, args=(conn, addr), daemon=True).start()
+
+if __name__ == "__main__":
+    start_server()
