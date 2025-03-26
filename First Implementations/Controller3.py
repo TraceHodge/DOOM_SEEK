@@ -41,9 +41,9 @@ def map_steering(value):
     if 20000 <= value <= 45000:
         return 0  # Dead zone: No turning, motors stop
     elif value < 20000:
-        return round(np.interp(value, [0, 20000], [50, 0]))  # Left turn
+        return round(np.interp(value, [0, 20000], [65, 0]))  # Left turn
     else:  # value > 45000
-        return round(np.interp(value, [45000, 65535], [0, 50]))  # Right turn
+        return round(np.interp(value, [45000, 65535], [0, 65]))  # Right turn
 
 # Map ABS_GAS for forward movement
 def map_gas(value):
@@ -56,7 +56,7 @@ def map_brake(value):
 try:
     gas_speed = 0
     brake_speed = 0
-    steering_map = 0
+    steering_map1 = 35000
     
     for event in controller.read_loop():
         if event.type == evdev.ecodes.EV_ABS:# Reads From event EV_ABS
@@ -68,21 +68,21 @@ try:
             
             elif event.code == evdev.ecodes.ABS_X: # Uses ABS_X=Left Joystick to control steering
                 steering_map1= event.value
-
+                
             steering_map = map_steering(steering_map1) # Maps the Input Values to Turn Speed
 
             if gas_speed > 0: # This will control movement going foward and turning at the same time
                 if steering_map1 > 45000:
                     motor1_speed = min(65, gas_speed + steering_map) #Motor 1 will increase speed while going forward and turning right
-                    motor2_speed = max(0, (gas_speed - steering_map)*0.90) #Motor 2 will decrease speed by 10% while going forward and turning right
+                    motor2_speed = max(0, (gas_speed - steering_map)) #Motor 2 will decrease speed by 10% while going forward and turning right
                 
-                if steering_map1 < 20000:
-                    motor1_speed = max(0, (gas_speed - steering_map) *0.90) #Motor 1 will decrease speed by 10% while going forward and turning left
+                elif steering_map1 < 20000:
+                    motor1_speed = max(0, (gas_speed - steering_map)) #Motor 1 will decrease speed by 10% while going forward and turning left
                     motor2_speed = min(65, gas_speed + steering_map) #Motor 2 will increase speed while going forward and turning left
                 
                 else:  # Moving straight
-                        motor1_speed = gas_speed
-                        motor2_speed = gas_speed
+                    motor1_speed = gas_speed
+                    motor2_speed = gas_speed
                 
                 send_packatized_command(128, 0, motor1_speed)
                 send_packatized_command(128, 4, motor2_speed)
@@ -90,23 +90,22 @@ try:
             
             elif brake_speed > 0: # This will control movement going backward and turning at the same time
                 if steering_map1 > 45000: 
-                    motor1_speed = max(65, (gas_speed - steering_map)*0.90) #Motor 1 will decrease speed by 10 % while going backward and turning right
-                    motor2_speed = min(0, gas_speed + steering_map) # Motor 2 will increase speed while going backward and turning right
-                
-                if steering_map1 < 20000:
-                    motor1_speed = min(0, gas_speed + steering_map) # Motor 1 will increase speed while going backward and turning left
-                    motor2_speed = max(65, (gas_speed - steering_map)*0.90) # Motor 2 will decrease speed by 10% while going backward and turning left
-                
+                    motor11_speed = round(max(65, (brake_speed - steering_map)*0.90)) #Motor 1 will decrease speed by 10 % while going backward and turning right
+                    motor21_speed = min(0, brake_speed + steering_map) # Motor 2 will increase speed while going backward and turning right
+                    
+                elif steering_map1 < 20000:
+                    motor11_speed = min(0, brake_speed + steering_map) # Motor 1 will increase speed while going backward and turning left
+                    motor21_speed= round(max(65, (brake_speed - steering_map)*0.90))
                 else:  # Moving straight
-                        motor1_speed = gas_speed
-                        motor2_speed = gas_speed
+                    motor11_speed = brake_speed
+                    motor21_speed = brake_speed
                 
-                send_packatized_command(128, 1, motor1_speed)
-                send_packatized_command(128, 5, motor2_speed)
-                print(f"Moving Reverse | Motor 1: {motor1_speed} | Motor 2: {motor2_speed}")
+                send_packatized_command(128, 1, motor11_speed)
+                send_packatized_command(128, 5, motor21_speed)
+                print(f"Moving Reverse | Motor 1: {motor11_speed} | Motor 2: {motor21_speed}")
             
             elif gas_speed == 0 and brake_speed == 0 and abs(steering_map) > 0: # This will control turning while the robot is stationary
-                if steering_map1 > 450000: #Turning Right
+                if steering_map1 > 45000: #Turning Right
                     send_packatized_command(128, 0, steering_map)  # Motor 1 Forward
                     send_packatized_command(128, 5, steering_map)  # Motor 2 Reverse
                     print(f"Turning Right: Motor 1 Forward, Motor 2 Reverse | Turn Speed: {steering_map}")
@@ -116,10 +115,6 @@ try:
                     send_packatized_command(128, 4, steering_map) # Motor 2 Forward
                     print(f"Turning Left: Motor 1 Reverse, Motor 2 Forward | Turn Speed: {steering_map}")
                 
-                else:
-                    send_packatized_command(128, 0, 0) # Stop Motor 1
-                    send_packatized_command(128, 4, 0) # Stop Motor 2
-                    print("Dead Zone: Motors Stopped")
             
             else: # This will stop the motors if no input is detected
                 send_packatized_command(128, 0, 0) # Stop Motor 1
@@ -132,7 +127,6 @@ except KeyboardInterrupt:  # CTRL + C to stop the program
     send_packatized_command(128, 4, 0)  # Stop Motor 2
     ser.close()
     sys.exit()
-
             
             
 
