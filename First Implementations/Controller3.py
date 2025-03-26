@@ -106,12 +106,12 @@ try:
                 print(f"Moving Reverse | Motor 1: {motor1_speed} | Motor 2: {motor2_speed}")
             
             elif gas_speed == 0 and brake_speed == 0 and abs(steering_map) > 0: # This will control turning while the robot is stationary
-                if event.value > 450000: #Turning Right
+                if steering_map1 > 450000: #Turning Right
                     send_packatized_command(128, 0, steering_map)  # Motor 1 Forward
                     send_packatized_command(128, 5, steering_map)  # Motor 2 Reverse
                     print(f"Turning Right: Motor 1 Forward, Motor 2 Reverse | Turn Speed: {steering_map}")
                 
-                elif event.value < 20000: # Turning Left
+                elif steering_map1 < 20000: # Turning Left
                     send_packatized_command(128, 1, steering_map) # Motor 1 Reverse
                     send_packatized_command(128, 4, steering_map) # Motor 2 Forward
                     print(f"Turning Left: Motor 1 Reverse, Motor 2 Forward | Turn Speed: {steering_map}")
