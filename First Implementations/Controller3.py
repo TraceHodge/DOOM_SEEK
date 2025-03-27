@@ -73,16 +73,18 @@ try:
 
             if gas_speed > 0: # This will control movement going foward and turning at the same time
                 if steering_map1 > 45000: # Turning Right
-                    steering_map2= gas_speed - round(gas_speed * 0.40) # Maps the Input Values to Turn Speed decrease by 40%
+                    turn_factor = np.interp(steering_map1, [45000, 65535], [0.15, 1.0])  # Increase turn intensity
+                    steering_map2= round(gas_speed * (1 - turn_factor)) # Maps the Input Values to Turn Speed decrease by 40%
 
-                    motor1_speed = gas_speed #Since were going forward and turning left motor 1 stays full speed
-                    motor2_speed = steering_map2  # Motor 2 will decrease speed by 40% while going forward and turning right
-                    
+                    motor1_speed = min(gas_speed, 65)  # Outer wheel at full gas speed
+                    motor2_speed = max(steering_map2, 0)  # Inner wheel slows down
+
                 elif steering_map1 < 20000: # Turning Left
-                    steering_map3= gas_speed - round(gas_speed * 0.40) # Maps the Input Values to Turn Speed decrease by 40%
+                    turn_factor2 = np.interp(steering_map1, [0, 20000], [0.15, 1.0])  # Increase turn intensity
+                    steering_map3= round(gas_speed * (1 - turn_factor2)) # Maps the Input Values to Turn Speed decrease by 40%
                      
-                    motor1_speed = steering_map3 # Motor 1 will decrease speed by 40% while going forward and turning left
-                    motor2_speed = gas_speed # Since were going forward and turning right motor 2 stays full speed
+                    motor1_speed = max(steering_map3,0) # Outer wheel slows down
+                    motor2_speed = min(gas_speed,65) # Inner wheel at full gas speed
                 
                 else:  # Moving straight
                     motor1_speed = gas_speed
@@ -93,18 +95,20 @@ try:
                 print(f"Moving Forward | Motor 1: {motor1_speed} | Motor 2: {motor2_speed}")
             
             elif brake_speed > 0: # This will control movement going backward and turning at the same time
-                if steering_map1 > 45000: # Turning Right
-
-                    steering_map4= brake_speed - round(brake_speed * 0.40) # Maps the Input Values to Turn Speed decrease by 40%
-
-                    motor1_speed = steering_map4 # Motor 1 will decrease speed by 40% while going backward and turning right
-                    motor2_speed = brake_speed # Since were going backward and turning right motor 2 stays full speed
+                if steering_map1 > 45000: # Turning Left
                     
-                elif steering_map1 < 20000: # Turning Left
-                    steering_map5= brake_speed - round(brake_speed * 0.40) # Maps the Input Values to Turn Speed decrease by 40%
+                    turn_factor3 = np.interp(steering_map1, [45000, 65535], [0.15, 1.0])  # Increase turn intensity
+                    steering_map4= round(brake_speed * (1 - turn_factor3)) # Maps the Input Values to Turn Speed decrease by 40%
+
+                    motor1_speed = max(steering_map4,0) # Outer wheel slows down
+                    motor2_speed = min(brake_speed,65) # Inner wheel at full gas speed
                     
-                    motor1_speed =  brake_speed # Since were going backward and turning left motor 1 stays full speed
-                    motor2_speed = steering_map5 # Motor 2 will decrease speed by 40% while going backward and turning left
+                elif steering_map1 < 20000: # Turning Right
+                    turn_factor4 = np.interp(steering_map1, [0, 20000], [0.15, 1.0]) 
+                    steering_map5= round(brake_speed * (1 - turn_factor4)) # Maps the Input Values to Turn Speed decrease by 40%
+                    
+                    motor1_speed = min(brake_speed,65) # Outer wheel at full gas speed
+                    motor2_speed = max(steering_map5,0) # Inner wheel slows down
 
                 else:  # Moving straight
                     motor1_speed = brake_speed
