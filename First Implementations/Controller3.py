@@ -72,13 +72,17 @@ try:
             steering_map = map_steering(steering_map1) # Maps the Input Values to Turn Speed
 
             if gas_speed > 0: # This will control movement going foward and turning at the same time
-                if steering_map1 > 45000:
-                    motor1_speed = min(65, gas_speed + steering_map) #Motor 1 will increase speed while going forward and turning right
-                    motor2_speed = max(0, (gas_speed - steering_map)) #Motor 2 will decrease speed by 10% while going forward and turning right
-                
-                elif steering_map1 < 20000:
-                    motor1_speed = max(0, (gas_speed - steering_map)) #Motor 1 will decrease speed by 10% while going forward and turning left
-                    motor2_speed = min(65, gas_speed + steering_map) #Motor 2 will increase speed while going forward and turning left
+                if steering_map1 > 45000: # Turning Right
+                    steering_map2= gas_speed - round(gas_speed * 0.40) # Maps the Input Values to Turn Speed decrease by 40%
+
+                    motor1_speed = gas_speed #Since were going forward and turning left motor 1 stays full speed
+                    motor2_speed = steering_map2  # Motor 2 will decrease speed by 40% while going forward and turning right
+                    
+                elif steering_map1 < 20000: # Turning Left
+                    steering_map3= gas_speed - round(gas_speed * 0.40) # Maps the Input Values to Turn Speed decrease by 40%
+                     
+                    motor1_speed = steering_map3 # Motor 1 will decrease speed by 40% while going forward and turning left
+                    motor2_speed = gas_speed # Since were going forward and turning right motor 2 stays full speed
                 
                 else:  # Moving straight
                     motor1_speed = gas_speed
@@ -89,20 +93,26 @@ try:
                 print(f"Moving Forward | Motor 1: {motor1_speed} | Motor 2: {motor2_speed}")
             
             elif brake_speed > 0: # This will control movement going backward and turning at the same time
-                if steering_map1 > 45000: 
-                    motor11_speed = round(max(65, (brake_speed - steering_map)*0.90)) #Motor 1 will decrease speed by 10 % while going backward and turning right
-                    motor21_speed = min(0, brake_speed + steering_map) # Motor 2 will increase speed while going backward and turning right
+                if steering_map1 > 45000: # Turning Right
+
+                    steering_map4= brake_speed - round(brake_speed * 0.40) # Maps the Input Values to Turn Speed decrease by 40%
+
+                    motor1_speed = steering_map4 # Motor 1 will decrease speed by 40% while going backward and turning right
+                    motor2_speed = brake_speed # Since were going backward and turning right motor 2 stays full speed
                     
-                elif steering_map1 < 20000:
-                    motor11_speed = min(0, brake_speed + steering_map) # Motor 1 will increase speed while going backward and turning left
-                    motor21_speed= round(max(65, (brake_speed - steering_map)*0.90))
+                elif steering_map1 < 20000: # Turning Left
+                    steering_map5= brake_speed - round(brake_speed * 0.40) # Maps the Input Values to Turn Speed decrease by 40%
+                    
+                    motor1_speed =  brake_speed # Since were going backward and turning left motor 1 stays full speed
+                    motor2_speed = steering_map5 # Motor 2 will decrease speed by 40% while going backward and turning left
+
                 else:  # Moving straight
-                    motor11_speed = brake_speed
-                    motor21_speed = brake_speed
+                    motor1_speed = brake_speed
+                    motor2_speed = brake_speed
                 
-                send_packatized_command(128, 1, motor11_speed)
-                send_packatized_command(128, 5, motor21_speed)
-                print(f"Moving Reverse | Motor 1: {motor11_speed} | Motor 2: {motor21_speed}")
+                send_packatized_command(128, 1, motor1_speed)
+                send_packatized_command(128, 5, motor2_speed)
+                print(f"Moving Reverse | Motor 1: {motor1_speed} | Motor 2: {motor2_speed}")
             
             elif gas_speed == 0 and brake_speed == 0 and abs(steering_map) > 0: # This will control turning while the robot is stationary
                 if steering_map1 > 45000: #Turning Right
