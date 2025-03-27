@@ -80,7 +80,7 @@ try:
                     motor2_speed = max(steering_map2, 0)  # Inner wheel slows down
 
                 elif steering_map1 < 20000: # Turning Left
-                    turn_factor2 = np.interp(steering_map1, [0, 20000], [0.15, 1.0])  # Increase turn intensity
+                    turn_factor2 = np.interp(steering_map1, [0, 20000], [1.0,0.15])  # Increase turn intensity
                     steering_map3= round(gas_speed * (1 - turn_factor2)) # Maps the Input Values to Turn Speed decrease by 40%
                      
                     motor1_speed = max(steering_map3,0) # Outer wheel slows down
@@ -104,7 +104,7 @@ try:
                     motor2_speed = min(brake_speed,65) # Inner wheel at full gas speed
                     
                 elif steering_map1 < 20000: # Turning Right
-                    turn_factor4 = np.interp(steering_map1, [0, 20000], [0.15, 1.0]) 
+                    turn_factor4 = np.interp(steering_map1, [0,20000], [1.0, 0.15]) 
                     steering_map5= round(brake_speed * (1 - turn_factor4)) # Maps the Input Values to Turn Speed decrease by 40%
                     
                     motor1_speed = min(brake_speed,65) # Outer wheel at full gas speed
