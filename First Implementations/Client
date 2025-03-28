@@ -1,58 +1,127 @@
-#!/usr/bin/env python3
-#run this on pc
-import socket
-import evdev
-import json
-import sys
+import pygame
+import numpy as np
+import requests
 
-# Replace with the Raspberry Pi's IP address on your network
-RASPBERRY_PI_IP = "192.168.1.100"  # <-- Update this to your Pi's IP
-PORT = 5000
+def main():
+    pygame.init()
+    pygame.joystick.init()
 
-# Connect to the Raspberry Pi server
-try:
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((RASPBERRY_PI_IP, PORT))
-    print("Connected to server on Raspberry Pi.")
-except Exception as e:
-    print("Could not connect to server:", e)
-    sys.exit(1)
+    if pygame.joystick.get_count() == 0:
+        print("No controller detected!")
+        pygame.quit()
+        exit()
 
-# Find the Xbox controller from available input devices
-devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
-controller = None
-for device in devices:
-    if "Xbox Wireless Controller" in device.name:
-        controller = evdev.InputDevice(device.path)
-        break
+    joystick = pygame.joystick.Joystick(0)
+    joystick.init()
+    print(f"Connected to: {joystick.get_name()}")
 
-if not controller:
-    print("No Xbox Wireless Controller found!")
-    sys.exit(1)
+    # Set your Raspberry Pi's IP address and port
+    server_ip = "192.168.1.100"  # update with your Pi's actual IP address
+    url = f"http://{server_ip}:8000/controller-input"
 
-print("Controller connected:", controller.name)
+    def map_steering(value):
+        if value > 0.10:  # Turning Right
+            return round(np.interp(value, [0.10, 1.00], [0, 65]))
+        elif value < -0.10:  # Turning Left
+            return round(np.interp(value, [-1.00, -0.10], [65, 0]))
+        else:
+            return 0
 
-def create_message(command, speed):
-    """Create a JSON message with a newline delimiter."""
-    return (json.dumps({"command": command, "speed": speed}) + "\n").encode('utf-8')
+    def map_forward(value):
+        return round(np.interp(value, [-0.10, 1.00], [0, 65]))
 
-try:
-    # Read events from the controller
-    for event in controller.read_loop():
-        if event.type == evdev.ecodes.EV_ABS:
-            # Right Trigger (assumed to be ABS_GAS) for forward movement
-            if event.code == evdev.ecodes.ABS_GAS:
-                speed = round((event.value / 1023) * 127)
-                message = create_message("forward", speed)
-                client.send(message)
-                print(f"Sent forward command with speed: {speed}")
-            # Left Trigger (assumed to be ABS_BRAKE) for backward movement
-            elif event.code == evdev.ecodes.ABS_BRAKE:
-                speed = round((event.value / 1023) * 127)
-                message = create_message("backward", speed)
-                client.send(message)
-                print(f"Sent backward command with speed: {speed}")
-except KeyboardInterrupt:
-    print("Exiting...")
-    client.close()
-    sys.exit(0)
+    def map_reverse(value):
+        return round(np.interp(value, [-0.10, 1.00], [0, 65]))
+
+    try:
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    raise KeyboardInterrupt  # Trigger clean exit
+
+            # Read controller inputs
+            left_x = joystick.get_axis(0)    # Controls Turning
+            abs_gas = joystick.get_axis(5)     # Controls Forward motion
+            abs_brake = joystick.get_axis(2)   # Controls Reverse motion
+
+            forward = map_forward(abs_gas)
+            reverse = map_reverse(abs_brake)
+            steering_speed = map_steering(left_x)
+
+            # Calculate motor speeds based on controller inputs
+            if forward > 0:
+                if left_x > 0.10:  # Turning Right while moving forward
+                    motor1_speed = forward
+                    decrease_factor = 1 - (steering_speed / 65)  # Normalize steering influence
+                    motor2_speed = max(0, round(forward * decrease_factor))
+                    if motor2_speed >= motor1_speed:
+                        motor2_speed = int(motor1_speed * 0.8)
+                elif left_x < -0.10:  # Turning Left while moving forward
+                    decrease_factor = 1 - (steering_speed / 65)
+                    motor1_speed = max(0, round(forward * decrease_factor))
+                    motor2_speed = forward
+                    if motor1_speed >= motor2_speed:
+                        motor1_speed = int(motor2_speed * 0.8)
+                else:
+                    motor1_speed = forward
+                    motor2_speed = forward
+                print(f"Forward: Motor1 = {motor1_speed:.2f} | Motor2 = {motor2_speed:.2f}")
+
+            elif reverse > 0:
+                if left_x > 0.10:  # Reverse while turning right
+                    decrease_factor = 1 - (steering_speed / 65)
+                    motor1_speed = max(0, round(reverse * decrease_factor))
+                    motor2_speed = reverse
+                    if motor1_speed >= motor2_speed:
+                        motor1_speed = int(motor2_speed * 0.8)
+                elif left_x < -0.10:  # Reverse while turning left
+                    motor1_speed = reverse
+                    decrease_factor = 1 - (steering_speed / 65)
+                    motor2_speed = max(0, round(reverse * decrease_factor))
+                    if motor2_speed >= motor1_speed:
+                        motor2_speed = int(motor1_speed * 0.8)
+                else:
+                    motor1_speed = reverse
+                    motor2_speed = reverse
+                print(f"Reverse: Motor1 = {motor1_speed:.2f} | Motor2 = {motor2_speed:.2f}")
+
+            elif (steering_speed > 0) and (reverse == 0) and (forward == 0):  # In-place turning
+                if left_x > 0:
+                    motor1_speed = steering_speed
+                    motor2_speed = -steering_speed
+                    print(f"Turning Right in place: Motor1 = {steering_speed}, Motor2 = -{steering_speed}")
+                elif left_x < 0:
+                    motor1_speed = -steering_speed
+                    motor2_speed = steering_speed
+                    print(f"Turning Left in place: Motor1 = -{steering_speed}, Motor2 = {steering_speed}")
+            else:  # Stop motors when no input is detected
+                motor1_speed = 0
+                motor2_speed = 0
+                print("Motors Stopped")
+
+            # Prepare data payload to send to the FastAPI server
+            payload = {
+                "left_x": left_x,
+                "forward": forward,
+                "reverse": reverse,
+                "steering_speed": steering_speed,
+                "motor1_speed": motor1_speed,
+                "motor2_speed": motor2_speed,
+            }
+
+            # Send the controller input data to the server
+            try:
+                response = requests.post(url, json=payload, timeout=0.5)
+                # Uncomment below to see the server response
+                # print("Server response:", response.json())
+            except Exception as e:
+                print("Error sending data to server:", e)
+
+            pygame.time.wait(50)  # Delay to reduce CPU load and control loop frequency
+
+    except KeyboardInterrupt:
+        print("\nExiting cleanly...")
+        pygame.quit()
+
+if __name__ == '__main__':
+    main()
