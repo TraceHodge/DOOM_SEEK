@@ -16,7 +16,7 @@ def main():
     print(f"Connected to: {joystick.get_name()}")
 
     # Set your Raspberry Pi's IP address and port
-    server_ip = "192.168.1.100"  # update with your Pi's actual IP address
+    server_ip = "10.13.57.244"  # update with your Pi's actual IP address
     url = f"http://{server_ip}:8000/controller-input"
 
     def map_steering(value):
