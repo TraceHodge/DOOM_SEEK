@@ -4,7 +4,7 @@ def main():
     import requests
     import time
 
-    SERVER_URL = "http://<replace with server ip>/control"  # Replace with your Raspberry Pi's IP
+    SERVER_URL = "http://10.13.57.244:8000/control"  # Replace with your Raspberry Pi's IP
 
     pygame.init()
     pygame.joystick.init()
@@ -89,10 +89,16 @@ def main():
             elif (steering_speed > 0) and (reverse == 0) and (forward == 0):  # Turning in Place
                 action = "turn"
                 if left_x > 0:  # Turning right
+                    action="Turning Right"
                     print(f"Turning Right | Motor 1 Forward: {steering_speed}, Motor 2 Reverse: {steering_speed}")
+                    motor1_speed = steering_speed
+                    motor2_speed = steering_speed
 
                 elif left_x < 0:  # Turning left
+                    action = "Turning Left"
                     print(f"Turning Left | Motor 1 Reverse: {steering_speed}, Motor 2 Forward: {steering_speed}")
+                    motor1_speed=steering_speed
+                    motor2_speed=steering_speed
 
                 else:  # Stop motors
                     print("Motors Stopped")
