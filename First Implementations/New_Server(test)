@@ -1,0 +1,107 @@
+# server.py
+from fastapi import FastAPI
+from pydantic import BaseModel
+import serial
+import struct
+import sys
+import math
+import numpy as np
+
+# --- Motor Controller Serial ---
+try:
+    ser = serial.Serial('/dev/ttyAMA0', 9600, timeout=1)  # Motor serial
+    print("Serial connection established with Sabertooth.")
+except Exception as e:
+    print(f"Error opening motor serial port: {e}")
+    sys.exit()
+
+def send_packatized_command(address, command, value):
+    try:
+        checksum = (address + command + value) & 0x7F
+        packet = bytes([address, command, value, checksum])
+        ser.write(packet)
+    except Exception as e:
+        print(f"Error sending command: {e}")
+
+# --- IMU Functions ---
+def checksum(data):
+    return sum(data) & 0xFF
+
+def parse_imu_packet(packet):
+    if len(packet) < 11 or packet[0] != 0x55:
+        return None
+    payload = packet[2:10]
+    received_checksum = packet[10]
+    if checksum(packet[:10]) != received_checksum:
+        return None
+    values = struct.unpack('<hhhh', payload)
+    roll = values[0] / 32768.0 * 180.0
+    pitch = values[1] / 32768.0 * 180.0
+    yaw = values[2] / 32768.0 * 180.0
+    return roll, pitch, yaw
+
+def read_imu_snapshot(port="/dev/ttyAMA2"):
+    try:
+        imu_ser = serial.Serial(port, 115200, timeout=0.1)
+        if imu_ser.read(1) == b'\x55':
+            packet = imu_ser.read(10)
+            packet = b'\x55' + packet
+            result = parse_imu_packet(packet)
+            imu_ser.close()
+            return result
+        imu_ser.close()
+    except Exception as e:
+        print(f"IMU error: {e}")
+    return None
+
+# --- FastAPI Server ---
+app = FastAPI()
+
+class MotorControl(BaseModel):
+    motor1_speed: int
+    motor2_speed: int
+    action: str
+
+@app.post("/control")
+async def control_motors(data: MotorControl):
+    print(f"Received Data: {data}")
+    motor1_speed = data.motor1_speed
+    motor2_speed = data.motor2_speed
+    action = data.action
+
+    if action == "forward":
+        send_packatized_command(128, 0, motor1_speed)
+        send_packatized_command(128, 4, motor2_speed)
+    elif action == "reverse":
+        send_packatized_command(128, 1, motor1_speed)
+        send_packatized_command(128, 5, motor2_speed)
+    elif action == "Turning Right":
+        send_packatized_command(128, 0, motor1_speed)
+        send_packatized_command(128, 5, motor2_speed)
+    elif action == "Turning Left":
+        send_packatized_command(128, 1, motor1_speed)
+        send_packatized_command(128, 4, motor2_speed)
+    else:
+        send_packatized_command(128, 0, 0)
+        send_packatized_command(128, 4, 0)
+
+    # Get IMU Data
+    imu_data = read_imu_snapshot()
+    if imu_data:
+        roll, pitch, yaw = imu_data
+        print(f"IMU - Roll: {roll:.2f}, Pitch: {pitch:.2f}, Yaw: {yaw:.2f}")
+        return {
+            "status": "Success",
+            "message": "Data received",
+            "imu": {
+                "roll": round(roll, 2),
+                "pitch": round(pitch, 2),
+                "yaw": round(yaw, 2)
+            }
+        }
+    else:
+        return {
+            "status": "Success",
+            "message": "Data received",
+            "imu": "Unavailable"
+        }
