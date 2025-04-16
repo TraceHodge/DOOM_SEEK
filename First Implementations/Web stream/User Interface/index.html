@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <title>Robot UI with IMU</title>
   <style>
-    body { margin: 0; padding: 0; font-family: sans-serif; background-color: #111; color: #fff; display: flex; height: 100vh; }
-    .left-panel { flex: 2; display: flex; flex-direction: column; padding: 10px; }
+    body { margin: 0; padding: 0; font-family: sans-serif; background-color: #111; color: #fff; display: flex; height: 100vh; position: relative; }
+    .left-panel { flex: 2; position: relative; padding: 10px; }
     .right-panel { flex: 1; background-color: #222; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; border-left: 2px solid #444; }
     .camera-label { font-size: 18px; padding: 5px; text-align: center; background: #333; }
-    .camera-frame { margin-bottom: 10px; }
-    .camera-large iframe { width: 100%; height: 300px; border: none; }
-    .camera-small iframe { width: 100%; height: 200px; border: none; }
+    .camera-frame-main { height: 100%; }
+    .camera-frame-main iframe { width: 100%; height: 100%; border: none; }
+    .camera-frame-pip { position: absolute; bottom: 20px; left: 20px; width: 310px; height: 280px; border: 2px solid #444; background-color: #000; }
+    .camera-frame-pip iframe { width: 100%; height: 100%; border: none; }
     .imu-log { width: 100%; background-color: #1e1e1e; border: 1px solid #555; padding: 10px; font-size: 14px; height: 200px; overflow-y: auto; margin-bottom: 20px; box-sizing: border-box; }
     .imu-log strong { display: block; margin-bottom: 5px; }
     .control { background: #333; border-radius: 10px; padding: 10px; margin-bottom: 15px; width: 100%; text-align: center; }
@@ -18,15 +19,16 @@
 </head>
 <body>
   <div class="left-panel">
-    <div class="camera-frame camera-large">
-      <div class="camera-label">Front Camera</div>
-      <iframe src="http://10.13.57.244:8889/camA" title="Camera A"></iframe>
+    <div class="camera-frame-main">
+      <div class="camera-label">Inspection Camera</div>
+      <iframe src="http://10.13.57.244:8889/camA" title="Inspection Camera"></iframe>
     </div>
-    <div class="camera-frame camera-small">
-      <div class="camera-label">Back Camera</div>
-      <iframe src="http://10.13.57.244:8889/camB" title="Camera B"></iframe>
+    <div class="camera-frame-pip">
+      <div class="camera-label">Driving Camera</div>
+      <iframe src="http://10.13.57.244:8889/camB" title="Driving Camera"></iframe>
     </div>
   </div>
+
   <div class="right-panel">
     <div class="imu-log" id="imu-log">
       <strong>IMU Log</strong>
@@ -54,7 +56,7 @@
       log.scrollTop = log.scrollHeight;
     }
 
-    setInterval(fetchIMU, 3000);
+    setInterval(fetchIMU, 500);
   </script>
 </body>
 </html>
