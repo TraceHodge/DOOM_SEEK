@@ -9,9 +9,27 @@
     .right-panel { flex: 1; background-color: #222; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; border-left: 2px solid #444; }
     .camera-label { font-size: 18px; padding: 5px; text-align: center; background: #333; }
     .camera-frame-main { height: 100%; }
-    .camera-frame-main iframe { width: 100%; height: 100%; border: none; }
-    .camera-frame-pip { position: absolute; bottom: 20px; left: 20px; width: 310px; height: 280px; border: 2px solid #444; background-color: #000; }
-    .camera-frame-pip iframe { width: 100%; height: 100%; border: none; }
+    .camera-frame-main iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      object-fit: cover; /* Makes video fill the iframe */
+    }
+    .camera-frame-pip {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      width: 310px;
+      height: 280px;
+      border: 2px solid #444;
+      background-color: #000;
+    }
+    .camera-frame-pip iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      object-fit: cover; /* Makes video fill the iframe */
+    }
     .imu-log { width: 100%; background-color: #1e1e1e; border: 1px solid #555; padding: 10px; font-size: 14px; height: 200px; overflow-y: auto; margin-bottom: 20px; box-sizing: border-box; }
     .imu-log strong { display: block; margin-bottom: 5px; }
     .control { background: #333; border-radius: 10px; padding: 10px; margin-bottom: 15px; width: 100%; text-align: center; }
@@ -21,17 +39,18 @@
   <div class="left-panel">
     <div class="camera-frame-main">
       <div class="camera-label">Inspection Camera</div>
-      <iframe src="http://10.13.57.244:8889/camA" title="Inspection Camera"></iframe>
+      <iframe src="http://10.13.57.244:8889/webrtc/camA" title="Inspection Camera"></iframe>
     </div>
     <div class="camera-frame-pip">
       <div class="camera-label">Driving Camera</div>
-      <iframe src="http://10.13.57.244:8889/camB" title="Driving Camera"></iframe>
+      <iframe src="http://10.13.57.244:8889/webrtc/camB" title="Driving Camera"></iframe>
     </div>
   </div>
 
   <div class="right-panel">
     <div class="imu-log" id="imu-log">
       <strong>IMU Log</strong>
+      <div id="imu-entry">Waiting for data...</div>
     </div>
     <h2>Controller Guide</h2>
     <div class="control">Left Analog = Turn</div>
@@ -41,22 +60,17 @@
 
   <script>
     async function fetchIMU() {
-      const res = await fetch('/logs/imu.log');
-      const text = await res.text();
-      const log = document.getElementById('imu-log');
-      log.innerHTML = '<strong>IMU Log</strong><br>';
-
-      const lines = text.trim().split('\n');
-      lines.forEach(line => {
-        const entry = document.createElement('div');
-        entry.textContent = `> ${line}`;
-        log.appendChild(entry);
-      });
-
-      log.scrollTop = log.scrollHeight;
+      try {
+        const res = await fetch('/imu');
+        const data = await res.json();
+        const entry = document.getElementById('imu-entry');
+        entry.innerHTML = `> [${data.timestamp}] Facing: ${data.facing} | Surface: ${data.surface}`;
+      } catch (err) {
+        console.error('IMU fetch error:', err);
+      }
     }
 
-    setInterval(fetchIMU, 500);
+    setInterval(fetchIMU, 300); // Fetch every 300ms
   </script>
 </body>
 </html>
