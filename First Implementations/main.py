@@ -1,9 +1,14 @@
+# GUI for web client for DOOM SEEK
+# ================================
+#
+# Primarily, this ...
 def main():
     import pygame
     import numpy as np
     import requests
     import time
 
+    # Update this based on the Pi's IP address.
     SERVER_URL = "http://10.13.57.244:8000/control"  # Replace with your Raspberry Pi's IP
 
     pygame.init()
