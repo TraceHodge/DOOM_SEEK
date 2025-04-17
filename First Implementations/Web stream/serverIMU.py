@@ -1,44 +1,36 @@
-import asyncio
-import struct
-import serial
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-import os
+import asyncio
+import serial
+import struct
+import datetime
 
 app = FastAPI()
 
+# Serve UI
 app.mount("/ui", StaticFiles(directory="ui"), name="ui")
-# Add this to serve logs directory
-app.mount("/logs", StaticFiles(directory="logs"), name="logs")
 
 @app.get("/")
 async def get_ui():
-    return HTMLResponse(open("ui/index.html").read())
+    return FileResponse("ui/index.html")
 
-
-# IMU Functions
 def checksum(data):
     return sum(data) & 0xFF
 
 def parse_data(packet):
     if len(packet) < 11 or packet[0] != 0x55 or checksum(packet[:10]) != packet[10]:
-        return None
+        return None, None
     data_type = packet[1]
     values = struct.unpack('<hhhh', packet[2:10])
-    if data_type == 0x53:
-        roll = values[0] / 32768.0 * 180.0
-        pitch = values[1] / 32768.0 * 180.0
-        yaw = values[2] / 32768.0 * 180.0
-        return roll, pitch, yaw
-    return None
+    return data_type, values
 
-def determine_direction(yaw):
+def direction(yaw):
     dirs = ["North", "NE", "East", "SE", "South", "SW", "West", "NW"]
     idx = int((yaw + 22.5) % 360 // 45)
     return dirs[idx]
 
-def determine_surface(pitch, roll):
+def surface(pitch, roll):
     if abs(pitch) < 45 and abs(roll) < 45:
         return "Floor"
     elif abs(pitch) > 135 or abs(roll) > 135:
@@ -46,37 +38,71 @@ def determine_surface(pitch, roll):
     else:
         return "Wall"
 
+latest_imu_data = {
+    "timestamp": None,
+    "facing": "N/A",
+    "surface": "N/A",
+    "accel": None,
+    "gyro": None
+}
+
+@app.get("/imu")
+async def get_imu():
+    return JSONResponse(content=latest_imu_data)
+
 async def imu_loop():
     try:
+        print("Attempting to open serial port /dev/ttyAMA2...")
         ser = serial.Serial("/dev/ttyAMA2", 115200, timeout=0.1)
         ser.flushInput()
-        print("IMU serial started on /dev/ttyAMA2")
+        print("? IMU Serial connection established on /dev/ttyAMA2")
+    except Exception as e:
+        print(f"? Failed to open IMU serial port: {e}")
+        return
 
+    roll = pitch = yaw = 0.0
+    accel = gyro = None
+
+    try:
         while True:
             if ser.read(1) == b'\x55':
                 packet = b'\x55' + ser.read(10)
-                result = parse_data(packet)
-                if result:
-                    roll, pitch, yaw = result
-                    direction = determine_direction(yaw)
-                    surface = determine_surface(pitch, roll)
+                data_type, values = parse_data(packet)
+                if data_type is None:
+                    continue
 
-                    msg = f"Facing: {direction} | Surface: {surface}"
+                if data_type == 0x51:
+                    ax = values[0] / 32768.0 * 16.0
+                    ay = values[1] / 32768.0 * 16.0
+                    az = values[2] / 32768.0 * 16.0
+                    accel = (ax, ay, az)
 
-                    os.makedirs("logs", exist_ok=True)
-                    with open("logs/imu.log", "a") as f:
-                        f.write(msg + "\n")
+                elif data_type == 0x52:
+                    gx = values[0] / 32768.0 * 2000.0
+                    gy = values[1] / 32768.0 * 2000.0
+                    gz = values[2] / 32768.0 * 2000.0
+                    gyro = (gx, gy, gz)
 
-                    # Optionally keep log file small
-                    with open("logs/imu.log", "r") as f:
-                        lines = f.readlines()[-50:]  # Last 50 lines only
-                    with open("logs/imu.log", "w") as f:
-                        f.writelines(lines)
+                elif data_type == 0x53:
+                    roll = values[0] / 32768.0 * 180.0
+                    pitch = values[1] / 32768.0 * 180.0
+                    yaw = values[2] / 32768.0 * 180.0
 
-            await asyncio.sleep(0.5)
+                    facing = direction(yaw)
+                    surf = surface(pitch, roll)
+                    timestamp = datetime.datetime.now().strftime('%H:%M:%S')
+                    latest_imu_data.update({
+                        "timestamp": timestamp,
+                        "facing": facing,
+                        "surface": surf,
+                        "accel": accel,
+                        "gyro": gyro
+                    })
+                    print(f"[{timestamp}] Facing: {facing} | Surface: {surf}")
 
-    except serial.SerialException as e:
-        print("Serial error:", e)
+            await asyncio.sleep(0)  # No delay, just yield
+    except Exception as e:
+        print(f"? IMU error: {e}")
 
 @app.on_event("startup")
 async def startup_event():
