@@ -74,7 +74,7 @@ async def imu_loop():
                 if data_type is None:
                     continue
                 #0x51 is the accelerometer data address
-                # [Acceleration](../docs/Acceleration0x51.png) 
+                # ![Acceleration](../docs/Acceleration0x51.png)
                 if data_type == 0x51:
                     ax = values[0] / 32768.0 * 16.0
                     ay = values[1] / 32768.0 * 16.0
@@ -82,7 +82,7 @@ async def imu_loop():
                     accel = (ax, ay, az)
 
                 #0x52 is the gyroscope data address
-                # [AngularVelocity](../docs/AngularVelocity0x52.png)
+                # ![AngularVelocity](../docs/AngularVelocity0x52.png)
                 elif data_type == 0x52:
                     gx = values[0] / 32768.0 * 2000.0
                     gy = values[1] / 32768.0 * 2000.0
@@ -90,7 +90,7 @@ async def imu_loop():
                     gyro = (gx, gy, gz)
                 
                 #0x53 is the orientation data address
-                # [Angle](../docs/Angle0x53.png)
+                # ![Angle](../docs/Angle0x53.png)
                 elif data_type == 0x53:
                     roll = values[0] / 32768.0 * 180.0
                     pitch = values[1] / 32768.0 * 180.0
