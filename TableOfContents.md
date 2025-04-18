@@ -7,6 +7,4 @@
     3.  [User
         Interface](First%20Implementations/Web%20stream/User%20Interface/index.html)
 
-[Table of Contents](TableOfContents.md)
-
 [To do list](TODO_LIST)
