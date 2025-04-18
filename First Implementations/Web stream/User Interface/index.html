@@ -15,7 +15,7 @@
       border: none;
       object-fit: cover; /* Makes video fill the iframe */
     }
-    .camera-frame-pip {
+    .camera-frame-pip {/* Picture-in-Picture */
       position: absolute;
       bottom: 20px;
       left: 20px;
@@ -59,6 +59,10 @@
   </div>
 
   <script>
+    //Fetch IMU data every 300ms
+    //This function will be called every 300ms to fetch the IMU data
+    //and update the UI accordingly.
+    //It uses the Fetch API to make a GET request to the /imu endpoint
     async function fetchIMU() {
       try {
         const res = await fetch('/imu');
@@ -70,7 +74,7 @@
       }
     }
 
-    setInterval(fetchIMU, 300); // Fetch every 300ms
+    setInterval(fetchIMU, 300); //Fetch every 300ms
   </script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+#This is a simple FastAPI server that communicates with a Sabertooth motor controller over serial.
 from fastapi import FastAPI
 from pydantic import BaseModel
 import serial
@@ -10,7 +11,8 @@ except Exception as e:
     print(f"Error opening serial port: {e}")
     sys.exit()
 
-
+#Def send_packatized_command function sends a command to the Sabertooth motor controller
+#It uses 3 bytes to send the command, which includes the address, command, and value
 def send_packatized_command(address, command, value):
     """Send a packetized command to Sabertooth"""
     try:
@@ -27,7 +29,12 @@ class MotorControl(BaseModel):
     motor1_speed: int
     motor2_speed: int
     action: str
-
+    
+#app post sends the motor control data to the Sabertooth motor controller
+#Packet 0 and 4 are used to control the forward actions of the motors 
+#Packet 1 and 5 are used to control the reverse actions of the motors
+#128 is the address of the Sabertooth motor controller 
+# [SaberTooth Info](Sabertooth2x32.pdf)
 @app.post("/control")
 async def control_motors(data: MotorControl):
     print(f"Received Data: {data}")
