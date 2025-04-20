@@ -4,77 +4,216 @@
   <meta charset="UTF-8">
   <title>Robot UI with IMU</title>
   <style>
-    body { margin: 0; padding: 0; font-family: sans-serif; background-color: #111; color: #fff; display: flex; height: 100vh; position: relative; }
-    .left-panel { flex: 2; position: relative; padding: 10px; }
-    .right-panel { flex: 1; background-color: #222; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; border-left: 2px solid #444; }
-    .camera-label { font-size: 18px; padding: 5px; text-align: center; background: #333; }
-    .camera-frame-main { height: 100%; }
-    .camera-frame-main iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      object-fit: cover; /* Makes video fill the iframe */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0d0d0d;
+      color: #eee;
+      display: flex;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
     }
-    .camera-frame-pip {/* Picture-in-Picture */
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      width: 310px;
-      height: 280px;
-      border: 2px solid #444;
-      background-color: #000;
+    .left-panel {
+      flex: 2;
+      position: relative;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
+    .right-panel {
+      flex: 1;
+      background-color: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      border-left: 3px solid #444;
+      box-shadow: -5px 0 10px rgba(0, 0, 0, 0.5);
+    }
+    .camera-label {
+      font-size: 18px;
+      padding: 8px;
+      text-align: center;
+      background: linear-gradient(90deg, #004aad, #00b4d8);
+      color: white;
+      font-weight: bold;
+      border-radius: 10px 10px 0 0;
+    }
+    .camera-frame-main, .camera-frame-pip {
+      background-color: #111;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 10px #0077b6;
+      flex-grow: 1;
+      position: relative;
+    }
+    .camera-frame-main iframe,
     .camera-frame-pip iframe {
       width: 100%;
       height: 100%;
       border: none;
-      object-fit: cover; /* Makes video fill the iframe */
+      object-fit: cover;
     }
-    .imu-log { width: 100%; background-color: #1e1e1e; border: 1px solid #555; padding: 10px; font-size: 14px; height: 200px; overflow-y: auto; margin-bottom: 20px; box-sizing: border-box; }
-    .imu-log strong { display: block; margin-bottom: 5px; }
-    .control { background: #333; border-radius: 10px; padding: 10px; margin-bottom: 15px; width: 100%; text-align: center; }
+    .camera-frame-pip {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      width: 280px;
+      height: 200px;
+      border: none;
+      box-shadow: 0 0 15px #48cae4;
+      background-color: #000;
+    }
+    .imu-log {
+      width: 100%;
+      background: #121212;
+      border: 2px solid #00b4d8;
+      padding: 15px;
+      font-size: 14px;
+      height: 200px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00b4d8;
+    }
+    .imu-log strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 18px;
+      color: #90e0ef;
+    }
+    h2 {
+      margin: 10px 0;
+      font-size: 22px;
+      color: #00b4d8;
+    }
+    .control {
+      background: linear-gradient(135deg, #0077b6, #00b4d8);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      width: 100%;
+      text-align: center;
+      font-weight: bold;
+      color: white;
+      box-shadow: 0 0 10px #00b4d8;
+      transition: transform 0.2s;
+    }
+    .control:hover {
+      transform: scale(1.05);
+      cursor: pointer;
+    }
+    #arrow-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  margin-top: -30px; /* Center it */
+  margin-left: -30px;
+  background: rgba(0, 180, 216, 0.1); /* semi-transparent blue */
+  clip-path: polygon(50% 0%, 100% 100%, 50% 80%, 0% 100%); /* Makes a triangle/arrow */
+  transform: rotate(0deg);
+  transform-origin: 50% 50%;
+  pointer-events: none; /* So you can still click iframe if needed */
+  z-index: 10;
+}
+
   </style>
 </head>
+
 <body>
-  <div class="left-panel">
-    <div class="camera-frame-main">
-      <div class="camera-label">Inspection Camera</div>
-      <iframe src="http://10.13.57.244:8889/webrtc/camA" title="Inspection Camera"></iframe>
-    </div>
-    <div class="camera-frame-pip">
-      <div class="camera-label">Driving Camera</div>
-      <iframe src="http://10.13.57.244:8889/webrtc/camB" title="Driving Camera"></iframe>
-    </div>
-  </div>
+    <div class="left-panel">
+        <div class="camera-frame-main" id="main-camera" data-type="inspection">
+          <div class="camera-label" id="main-label">Inspection Camera</div>
+          <iframe src="http://10.13.57.244:8889/webrtc/camA" title="Inspection Camera" id="main-iframe"></iframe>
+        </div>
+      
+        <div class="camera-frame-pip" id="pip-camera" data-type="driving">
+          <div class="camera-label" id="pip-label">Driving Camera</div>
+          <iframe src="http://10.13.57.244:8889/webrtc/camB" title="Driving Camera" id="pip-iframe"></iframe>
+          <div id="arrow-overlay"></div>
+        </div>
+      </div>
+      
 
   <div class="right-panel">
     <div class="imu-log" id="imu-log">
       <strong>IMU Log</strong>
       <div id="imu-entry">Waiting for data...</div>
     </div>
+    <div class="imu-log" id="input-log">
+        <strong>Controller Inputs</strong>
+        <div id="input-entry">Waiting for inputs...</div>
+      </div>
     <h2>Controller Guide</h2>
     <div class="control">Left Analog = Turn</div>
     <div class="control">R2 = Forward</div>
     <div class="control">L2 = Reverse</div>
   </div>
 
-  <script>
-    //Fetch IMU data every 300ms
-    //This function will be called every 300ms to fetch the IMU data
-    //and update the UI accordingly.
-    //It uses the Fetch API to make a GET request to the /imu endpoint
-    async function fetchIMU() {
-      try {
-        const res = await fetch('/imu');
-        const data = await res.json();
-        const entry = document.getElementById('imu-entry');
-        entry.innerHTML = `> [${data.timestamp}] Facing: ${data.facing} | Surface: ${data.surface}`;
-      } catch (err) {
-        console.error('IMU fetch error:', err);
-      }
-    }
+    <script>
+  async function fetchIMU() {
+    try {
+      const res = await fetch('/imu');
+      const data = await res.json();
+      const imuLog = document.getElementById('imu-log');
+      imuLog.innerHTML = `
+        <strong>IMU Log</strong>
+        <div id="imu-entry">> [${data.timestamp}] Facing: ${data.facing} | Surface: ${data.surface}</div>
+      `;
 
-    setInterval(fetchIMU, 300); //Fetch every 300ms
+     // Rotate arrow
+    const arrow = document.getElementById('arrow-overlay');
+    arrow.style.transform = `rotate(${data.facing}deg)`;
+        // Update Controller Inputs
+        const inputEntry = document.getElementById('input-entry');
+    inputEntry.textContent = `> ${data.input || 'No input detected'}`;
+    } catch (err) {
+      console.error('IMU fetch error:', err);
+    }
+  }
+  
+    setInterval(fetchIMU, 300);
+    
+// --- New Camera Swap Code ---
+const mainCamera = document.getElementById('main-camera');
+const pipCamera = document.getElementById('pip-camera');
+const mainIframe = document.getElementById('main-iframe');
+const pipIframe = document.getElementById('pip-iframe');
+const mainLabel = document.getElementById('main-label');
+const pipLabel = document.getElementById('pip-label');
+
+mainCamera.addEventListener('click', swapCameras);
+pipCamera.addEventListener('click', swapCameras);
+
+function swapCameras() {
+  // Swap iframe sources
+  const tempSrc = mainIframe.src;
+  mainIframe.src = pipIframe.src;
+  pipIframe.src = tempSrc;
+
+  // Swap labels
+  const tempLabel = mainLabel.textContent;
+  mainLabel.textContent = pipLabel.textContent;
+  pipLabel.textContent = tempLabel;
+
+  // Swap data-type attributes
+  const tempType = mainCamera.getAttribute('data-type');
+  mainCamera.setAttribute('data-type', pipCamera.getAttribute('data-type'));
+  pipCamera.setAttribute('data-type', tempType);
+
+  // Move arrow overlay to wherever the "driving" camera is now
+  const arrow = document.getElementById('arrow-overlay');
+  if (mainCamera.getAttribute('data-type') === 'driving') {
+    mainCamera.appendChild(arrow);
+  } else {
+    pipCamera.appendChild(arrow);
+  }
+}
   </script>
 </body>
 </html>
