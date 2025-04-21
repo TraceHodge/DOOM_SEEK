@@ -4,7 +4,7 @@ def main():
     import requests
     import time
 
-    SERVER_URL = "http://10.13.57.244:8000/control"  #Replace with your Raspberry Pi's IP
+    SERVER_URL = "http://192.186.1.2:8000/control"  #Replace with your Raspberry Pi's IP
 
     pygame.init()
     pygame.joystick.init()
@@ -57,6 +57,7 @@ def main():
                     motor2_speed = max(0, round(forward * decrease_factor)) 
                     if motor2_speed >= motor1_speed:
                         motor2_speed = motor1_speed * 0.8
+
                 elif left_x < -0.10:  # Turning Left
                     decrease_factor = 1 - (steering_speed / 65)  #Normalize steering speed
                     motor1_speed = max(0, round(forward * decrease_factor))
@@ -66,7 +67,8 @@ def main():
                 else:
                     motor1_speed = forward
                     motor2_speed = forward
-
+        
+            #Reverse Controls how fast were going reverse and turning
             elif reverse > 0:
                 action = "reverse"
                 if left_x > 0.10:  #Reverse Right
@@ -75,6 +77,7 @@ def main():
                     motor2_speed = reverse
                     if motor1_speed >= motor2_speed:
                         motor1_speed = motor2_speed * 0.8
+
                 elif left_x < -0.10:  #Reverse Left
                     motor1_speed = reverse
                     decrease_factor = 1 - (steering_speed / 65)
@@ -85,18 +88,15 @@ def main():
                     motor1_speed = reverse
                     motor2_speed = reverse
 
-
-            elif (steering_speed > 0) and (reverse == 0) and (forward == 0):  #Turning in Place
-                action = "turn"
+            #Turning in Place
+            elif (steering_speed > 0) and (reverse == 0) and (forward == 0):  
                 if left_x > 0:  #Turning right
                     action="Turning Right"
-                    print(f"Turning Right | Motor 1 Forward: {steering_speed}, Motor 2 Reverse: {steering_speed}")
                     motor1_speed = steering_speed
                     motor2_speed = steering_speed
 
                 elif left_x < 0:  #Turning left
                     action = "Turning Left"
-                    print(f"Turning Left | Motor 1 Reverse: {steering_speed}, Motor 2 Forward: {steering_speed}")
                     motor1_speed=steering_speed
                     motor2_speed=steering_speed
 
