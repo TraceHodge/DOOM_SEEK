@@ -35,7 +35,7 @@ latest_control_input = {"timestamp": None, "input": "None"}
 async def control_motors(data: MotorControl):
     latest_control_input.update({
         "timestamp": datetime.datetime.now().strftime('%H:%M:%S'),
-        "input": f"Action: {data.action}"
+        "input": f"{data.action}"
     })
 
     if data.action == "forward":
