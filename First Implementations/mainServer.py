@@ -30,13 +30,13 @@ class MotorControl(BaseModel):
     action: str
 
 latest_control_input = {"timestamp": None, "input": "None"}
-
+#App.post("/control") receives motor control commands
+#This endpoint expects a JSON payload with motor speeds and action
 @app.post("/control")
 async def control_motors(data: MotorControl):
-    latest_control_input.update({
-        "timestamp": datetime.datetime.now().strftime('%H:%M:%S'),
-        "input": f"{data.action}"
-    })
+    #Update the latest control input properly
+    latest_control_input["timestamp"] = datetime.datetime.now().strftime('%H:%M:%S')
+    latest_control_input["input"] = data.action
 
     if data.action == "forward":
         send_packatized_command(128, 0, data.motor1_speed)
@@ -65,7 +65,11 @@ async def get_ui():
 #This data includes the timestamp and the input action
 @app.get("/input")
 async def get_input():
-    return JSONResponse(content=latest_control_input)
+     #Send exactly what the UI expects
+    return JSONResponse(content={
+        "timestamp": latest_control_input["timestamp"],
+        "input": latest_control_input["input"]
+    })
 #------------------------------------------------------------------------------------------------------
 #Below line is the Beginning for IMU telemetry
 def checksum(data):
