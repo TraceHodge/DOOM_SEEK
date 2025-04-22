@@ -7,10 +7,7 @@ echo "Starting MediaMTX..."
 # Wait a bit to let MediaMTX boot up
 sleep 2
 
-#echo "Starting IMU Data" 
-#uvicorn serverIMU:app --host 0.0.0.0 --port 8081 > logs/server.log 2>&1 &
-
-echo "Starting Server Controls on port 8000" 
+echo "Starting Server port 8000" 
 uvicorn main:app --host 0.0.0.0 --port 8000 > logs/motor_server.log 2>&1 &
 
 # Stream Camera A
