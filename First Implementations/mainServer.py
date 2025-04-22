@@ -9,6 +9,8 @@ app = FastAPI()
 app.mount("/ui", StaticFiles(directory="ui"), name="ui")
 
 # Connect to Sabertooth motor controller
+# Information about the Sabertooth motor controller 
+# [Sabertooth 2x32](Sabertooth2x32.pdf)
 try:
     ser = serial.Serial('/dev/ttyAMA0', 9600, timeout=1)
     print("Serial connection established with Sabertooth.")
@@ -105,7 +107,7 @@ async def get_imu():
     data["input"] = latest_control_input.get("input")
     return JSONResponse(content=data)
 
-# def imu_loop reads data from the IMU sensor and updates the latest IMU data
+# def imu\_loop reads data from the IMU sensor and updates the latest IMU data
 #app.get("/imu") returns the latest IMU data
 async def imu_loop():
     try:
@@ -128,17 +130,17 @@ async def imu_loop():
                 if not data_type:
                     continue
                 #0x51 is the accelerometer data address
-                # ![Acceleration](../docs/Acceleration0x51.png)
+                # ![](./docs/Acceleration0x51.png)
                 if data_type == 0x51:
                     accel = tuple(v / 32768.0 * 16.0 for v in values[:3])
 
                 #0x52 is the accelerometer data address
-                # ![AngularVelocity](../docs/AngularVelocity0x52.png)
+                # ![](./docs/AngularVelocity0x52.png)
                 elif data_type == 0x52:
                     gyro = tuple(v / 32768.0 * 2000.0 for v in values[:3])
 
                 #0x53 is the Euler angles data address
-                # # ![Angle](../docs/Angle0x53.png)
+                # ![](./docs/Angle0x53.png)
                 elif data_type == 0x53:
                     roll = values[0] / 32768.0 * 180.0
                     pitch = values[1] / 32768.0 * 180.0
