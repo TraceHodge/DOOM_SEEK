@@ -37,5 +37,5 @@ sleep 2
 echo "Starting Memory Control"
 ./memory_monitor.sh > logs/memory.log 2>&1 &
 
-echo "All services started! Access UI at: http://<your-pi-ip>:8081"
+echo "All services started! Access UI at: http://<your-pi-ip>:8000"
 echo "Type ./stop_all.sh to End All Streams"

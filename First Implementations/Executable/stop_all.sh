@@ -6,3 +6,4 @@ pkill -f "memory_monitor.sh"
 rm -rf __pycache__
 rm -f logs/*.log
 echo " All Logs Cleared"
+echo "All services stopped!"
