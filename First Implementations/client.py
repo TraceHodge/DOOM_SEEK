@@ -1,3 +1,7 @@
+# This script is used to control a robot using a joystick.
+# It sends the motor speeds and actions to a server via HTTP POST requests.
+# [Pygame controls Info](https://www.pygame.org/docs/ref/joystick.html)
+# Our controls are for a Playstation 4 controller
 def main():
     import pygame
     import numpy as np
