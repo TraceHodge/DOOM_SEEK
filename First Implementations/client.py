@@ -4,7 +4,7 @@ def main():
     import requests
     import time
 
-    SERVER_URL = "http://192.186.1.2:8000/control"  #Replace with your Raspberry Pi's IP
+    SERVER_URL = "http://192.186.1.2:8000/control"
 
     pygame.init()
     pygame.joystick.init()
@@ -18,89 +18,101 @@ def main():
     joystick.init()
     print(f"Connected to: {joystick.get_name()}")
 
+    base_speed = 65  # Starting speed
+    max_speed = 80
+    min_speed = 65
+
     def map_steering(value):
-        if value > 0.10:  #Turning Right
-            return round(np.interp(value, [0.10, 1.00], [0, 65]))
+        if value > 0.10:
+            return round(np.interp(value, [0.10, 1.00], [0, base_speed]))
         elif value < -0.10:
-            return round(np.interp(value, [-1.00, -0.10], [65, 0]))
+            return round(np.interp(value, [-1.00, -0.10], [base_speed, 0]))
         else:
             return 0
 
     def map_forward(value):
-        return round(np.interp(value, [0.00, 1.00], [0, 65]))
+        return round(np.interp(value, [0.00, 1.00], [0, base_speed]))
 
     def map_reverse(value):
-        return round(np.interp(value, [0.00, 1.00], [0, 65]))
+        return round(np.interp(value, [0.00, 1.00], [0, base_speed]))
 
     try:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     raise KeyboardInterrupt
+                # Check button events for Xbox D-Pad UP (11) and DOWN (12)
+                if event.type == pygame.JOYBUTTONDOWN:
+                    if joystick.get_button(11):  # D-pad UP
+                        base_speed = min(base_speed + 5, max_speed)
+                        action = "Speed increased"
+                        print(f"Speed increased: {base_speed}")
+                    if joystick.get_button(12):  # D-pad DOWN
+                        base_speed = max(base_speed - 5, min_speed)
+                        action = "Speed decreased"
+                        print(f"Speed decreased: {base_speed}")
 
-            left_x = joystick.get_axis(0)  #Steering
-            abs_gas = joystick.get_axis(5)  #Forward
-            abs_brake = joystick.get_axis(4)  #Reverse
+            left_x = joystick.get_axis(0)
+            abs_gas = joystick.get_axis(5)
+            abs_brake = joystick.get_axis(4)
 
+            #forward,reverse,steering_speed are passed through the mapping functions
+            # to get the values between 0 and base_speed
             forward = map_forward(abs_gas)
             reverse = map_reverse(abs_brake)
             steering_speed = map_steering(left_x)
 
             action = "stop"
             motor1_speed = motor2_speed = 0
-            #Forward Controls how fast were going forward and turning
+            #forward > 0 controls the forward motion and turning while going forward
             if forward > 0:
                 action = "forward"
-                if left_x > 0.10:  #Turning Right
+                if left_x > 0.10: #Turning right
                     motor1_speed = forward
-                    decrease_factor = 1 - (steering_speed / 65)  #Normalize steering speed
-                    motor2_speed = max(0, round(forward * decrease_factor)) 
-                    if motor2_speed >= motor1_speed:
+                    decrease_factor = 1 - (steering_speed / base_speed) # decrease factor is calculated 
+                    motor2_speed = max(0, round(forward * decrease_factor))# to decrease the speed of the other motor
+                    if motor2_speed >= motor1_speed:# if the speed of motor2 is greater than motor1 is will decrease the speed of motor2
                         motor2_speed = motor1_speed * 0.8
-
-                elif left_x < -0.10:  # Turning Left
-                    decrease_factor = 1 - (steering_speed / 65)  #Normalize steering speed
-                    motor1_speed = max(0, round(forward * decrease_factor))
+                elif left_x < -0.10: #Turning left
+                    decrease_factor = 1 - (steering_speed / base_speed)# decrease factor is calculated
+                    motor1_speed = max(0, round(forward * decrease_factor)) # to decrease the speed of the other motor
                     motor2_speed = forward
                     if motor1_speed >= motor2_speed:
                         motor1_speed = motor2_speed * 0.8
                 else:
                     motor1_speed = forward
                     motor2_speed = forward
-        
-            #Reverse Controls how fast were going reverse and turning
+                    
+            #reverse > 0 controls the reverse motion and turning while going reverse
+            # and the steering speed is used to control the turning
             elif reverse > 0:
                 action = "reverse"
-                if left_x > 0.10:  #Reverse Right
-                    decrease_factor = 1 - (steering_speed / 65)
+                if left_x > 0.10:
+                    decrease_factor = 1 - (steering_speed / base_speed)
                     motor1_speed = max(0, round(reverse * decrease_factor))
                     motor2_speed = reverse
                     if motor1_speed >= motor2_speed:
                         motor1_speed = motor2_speed * 0.8
-
-                elif left_x < -0.10:  #Reverse Left
+                elif left_x < -0.10:
                     motor1_speed = reverse
-                    decrease_factor = 1 - (steering_speed / 65)
+                    decrease_factor = 1 - (steering_speed / base_speed)
                     motor2_speed = max(0, round(reverse * decrease_factor))
                     if motor2_speed >= motor1_speed:
                         motor2_speed = motor1_speed * 0.8
                 else:
                     motor1_speed = reverse
                     motor2_speed = reverse
-
-            #Turning in Place
-            elif (steering_speed > 0) and (reverse == 0) and (forward == 0):  
-                if left_x > 0:  #Turning right
-                    action="Turning Right"
+            # In place turning
+            elif (steering_speed > 0) and (reverse == 0) and (forward == 0):
+                if left_x > 0:
+                    action = "Turning Right"
                     motor1_speed = steering_speed
                     motor2_speed = steering_speed
-
-                elif left_x < 0:  #Turning left
+                elif left_x < 0:
                     action = "Turning Left"
-                    motor1_speed=steering_speed
-                    motor2_speed=steering_speed
-
-                else:  #Stop motors
+                    motor1_speed = steering_speed
+                    motor2_speed = steering_speed
+                else:
                     print("Motors Stopped")
 
             data = {
@@ -116,12 +128,11 @@ def main():
             except requests.exceptions.RequestException as e:
                 print(f"Error: {e}")
 
-            time.sleep(0.05)  #Prevent spamming the server
+            time.sleep(0.05)
 
     except KeyboardInterrupt:
         print("\nExiting cleanly...")
         pygame.quit()
-
 
 if __name__ == "__main__":
     main()
