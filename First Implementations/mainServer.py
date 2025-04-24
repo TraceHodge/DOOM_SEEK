@@ -8,9 +8,8 @@ import serial, struct, sys, asyncio, datetime
 app = FastAPI()
 app.mount("/ui", StaticFiles(directory="ui"), name="ui")
 
-# Connect to Sabertooth motor controller
-# Information about the Sabertooth motor controller 
-# [Sabertooth 2x32](Sabertooth2x32.pdf)
+# Connect to Sabertooth motor controller. Information about the Sabertooth motor
+# controller [Sabertooth 2x32](Sabertooth2x32.pdf)
 try:
     ser = serial.Serial('/dev/ttyAMA0', 9600, timeout=1)
     print("Serial connection established with Sabertooth.")
