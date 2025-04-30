@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import serial, struct, sys, asyncio, datetime
+import board
+import neopixel
 
 app = FastAPI()
 app.mount("/ui", StaticFiles(directory="ui"), name="ui")
@@ -30,14 +32,29 @@ class MotorControl(BaseModel):
     motor2_speed: int
     action: str
 
-latest_control_input = {"timestamp": None, "input": "None"}
+# Num_Pixels is the number of pixels in the LED strip
+# The LED strip is connected to GPIO pin 24
+# pixels is the object that controls the LED strip
+NUM_PIXELS = 42    # Change this to match your LED count
+PIXEL_PIN = board.D24   # Data line (GPIO 24)
+pixels = neopixel.NeoPixel(PIXEL_PIN, NUM_PIXELS, brightness=0.7, auto_write=True)
+
+latest_control_input = {
+    "timestamp": None,
+    "action": None,
+    "motor1_speed": 0,
+    "motor2_speed": 0
+}
+
 #App.post("/control") receives motor control commands
 #This endpoint expects a JSON payload with motor speeds and action
 @app.post("/control")
 async def control_motors(data: MotorControl):
-    #Update the latest control input properly
+    # Update the latest control input properly
     latest_control_input["timestamp"] = datetime.datetime.now().strftime('%H:%M:%S')
-    latest_control_input["input"] = data.action
+    latest_control_input["action"] = data.action
+    latest_control_input["motor1_speed"] = data.motor1_speed
+    latest_control_input["motor2_speed"] = data.motor2_speed
 
     if data.action == "forward":
         send_packatized_command(128, 0, data.motor1_speed)
@@ -51,19 +68,33 @@ async def control_motors(data: MotorControl):
     elif data.action == "Turning Left":
         send_packatized_command(128, 1, data.motor1_speed)
         send_packatized_command(128, 4, data.motor2_speed)
+    elif data.action == "Led On":
+        pixels.fill((255, 255, 255))  # White LED
+    elif data.action == "Led Off":
+        pixels.fill((0, 0, 0))  # Turn off LED
     else:
         send_packatized_command(128, 0, 0)
         send_packatized_command(128, 4, 0)
-
     return {"status": "Success", "message": "Data received"}
+
+# Then update this endpoint accordingly:
+@app.get("/input")
+async def get_input():
+    return JSONResponse(content={
+        "timestamp": latest_control_input["timestamp"],
+        "action": latest_control_input["action"],
+        "motor1_speed": latest_control_input["motor1_speed"],
+        "motor2_speed": latest_control_input["motor2_speed"]
+    })
 #------------------------------------------------------------------------------------------------------
 #Above line is the endpoint for motor control
+# app.get("/") serves the UI information 
 @app.get("/")
 async def get_ui():
     return FileResponse("ui/index.html")
 
-#app.get inut returns the latest control input data
 #This data includes the timestamp and the input action
+# app.get("/input") returns the latest control input data
 @app.get("/input")
 async def get_input():
      #Send exactly what the UI expects
@@ -99,15 +130,14 @@ latest_imu_data = {
     "accel": None,
     "gyro": None
 }
-#app.get("/imu") returns the latest IMU data
+#app.get("/imu") returns the latest IMU data to the UI
 @app.get("/imu")
 async def get_imu():
     data = latest_imu_data.copy()
     data["input"] = latest_control_input.get("input")
     return JSONResponse(content=data)
 
-# def imu\_loop reads data from the IMU sensor and updates the latest IMU data
-#app.get("/imu") returns the latest IMU data
+# def imu_loop reads data from the IMU sensor and updates the latest IMU data
 async def imu_loop():
     try:
         print("Attempting to open serial port /dev/ttyAMA2...")

@@ -8,7 +8,7 @@ def main():
     import requests
     import time
 
-    SERVER_URL = "http://192.186.1.2:8000/control"
+    SERVER_URL = "http://192.168.1.2:8000/control"
 
     pygame.init()
     pygame.joystick.init()
@@ -25,6 +25,7 @@ def main():
     base_speed = 65  # Starting speed
     max_speed = 80
     min_speed = 65
+    led_state = "Led Off" 
 
     def map_steering(value):
         if value > 0.10:
@@ -46,6 +47,7 @@ def main():
                 if event.type == pygame.QUIT:
                     raise KeyboardInterrupt
                 # Check button events for Xbox D-Pad UP (11) and DOWN (12)
+#----------------------------------- Start Of Button Events -----------------------------------
                 if event.type == pygame.JOYBUTTONDOWN:
                     if joystick.get_button(11):  # D-pad UP
                         base_speed = min(base_speed + 5, max_speed)
@@ -55,6 +57,26 @@ def main():
                         base_speed = max(base_speed - 5, min_speed)
                         action = "Speed decreased"
                         print(f"Speed decreased: {base_speed}")
+                    if joystick.get_button(0):# X button
+                        if led_state == "Led Off":
+                            led_state = "Led On"
+                        else:
+                            led_state = "Led Off"
+                        print(f"LED State Changed: {led_state}")
+
+                        # Send LED action immediately
+                    data = {
+                        "motor1_speed": 0,
+                        "motor2_speed": 0,
+                        "action": led_state
+                    }
+                    try:
+                        response = requests.post(SERVER_URL, json=data)
+                        if response.status_code != 200:
+                            print(f"Failed to send LED data: {response.status_code}")
+                    except requests.exceptions.RequestException as e:
+                        print(f"Error sending LED command: {e}")
+# ----------------------------------- End Of Button Events -----------------------------------
 
             left_x = joystick.get_axis(0)
             abs_gas = joystick.get_axis(5)

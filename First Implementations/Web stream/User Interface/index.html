@@ -169,7 +169,8 @@
       try {
         const inputRes = await fetch('http://192.168.1.2:8000/input');
         const inputData = await inputRes.json();
-        document.getElementById('input-entry').textContent = `> [${inputData.timestamp}] Input: ${inputData.input} `;
+        document.getElementById('input-entry').textContent = `> [${inputData.timestamp}] Action: ${inputData.action} | M1: ${inputData.motor1_speed} | M2: ${inputData.motor2_speed}`;
+
       } catch (err) {
         console.error('Input fetch error:', err);
       }
