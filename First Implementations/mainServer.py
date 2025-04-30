@@ -51,6 +51,7 @@ latest_control_input = {
 @app.post("/control")
 async def control_motors(data: MotorControl):
     # Update the latest control input properly
+    # This is the correct way to update the latest_control_input dictionary
     latest_control_input["timestamp"] = datetime.datetime.now().strftime('%H:%M:%S')
     latest_control_input["action"] = data.action
     latest_control_input["motor1_speed"] = data.motor1_speed

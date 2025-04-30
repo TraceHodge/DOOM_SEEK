@@ -1,7 +1,7 @@
-# This script is used to control a robot using a joystick.
-# It sends the motor speeds and actions to a server via HTTP POST requests.
-# [Pygame controls Info](https://www.pygame.org/docs/ref/joystick.html)
-# Our controls are for a Playstation 4 controller
+# This script is used to control a robot using a joystick. It sends the motor
+# speeds and actions to a server via HTTP POST requests. [Pygame controls
+# Info](https://www.pygame.org/docs/ref/joystick.html) Our controls are for a
+# Playstation 4 controller
 def main():
     import pygame
     import numpy as np
@@ -51,11 +51,9 @@ def main():
                 if event.type == pygame.JOYBUTTONDOWN:
                     if joystick.get_button(11):  # D-pad UP
                         base_speed = min(base_speed + 5, max_speed)
-                        action = "Speed increased"
                         print(f"Speed increased: {base_speed}")
                     if joystick.get_button(12):  # D-pad DOWN
                         base_speed = max(base_speed - 5, min_speed)
-                        action = "Speed decreased"
                         print(f"Speed decreased: {base_speed}")
                     if joystick.get_button(0):# X button
                         if led_state == "Led Off":
@@ -76,14 +74,15 @@ def main():
                             print(f"Failed to send LED data: {response.status_code}")
                     except requests.exceptions.RequestException as e:
                         print(f"Error sending LED command: {e}")
-# ----------------------------------- End Of Button Events -----------------------------------
+# \----------------------------------- End Of Button Events
+# -----------------------------------
 
             left_x = joystick.get_axis(0)
             abs_gas = joystick.get_axis(5)
             abs_brake = joystick.get_axis(4)
 
             #forward,reverse,steering_speed are passed through the mapping functions
-            # to get the values between 0 and base_speed
+            # to get the values between 0 and base\_speed
             forward = map_forward(abs_gas)
             reverse = map_reverse(abs_brake)
             steering_speed = map_steering(left_x)

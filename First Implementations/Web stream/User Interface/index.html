@@ -149,8 +149,8 @@
     <div class="control">Left Analog = Turn</div>
     <div class="control">R2 = Forward</div>
     <div class="control">L2 = Reverse</div>
-    <div class="control">Dpad UP = Increase Speed</div>
-    <div class="control">Dpad DOWN = Decrease Speed</div>
+    <div class="control">Dpad = Speed Change</div>
+    <div class="control">A = Led Control</div>
   </div>
 
   <script>
@@ -179,7 +179,7 @@
     setInterval(() => {
       fetchIMU();
       fetchInput();
-    }, 300);
+    }, 200);
 
     const mainCamera = document.getElementById('main-camera');
     const pipCamera = document.getElementById('pip-camera');
