@@ -164,7 +164,7 @@ async def imu_loop():
                 if data_type == 0x51:
                     accel = tuple(v / 32768.0 * 16.0 for v in values[:3])
 
-                #0x52 is the accelerometer data address
+                #0x52 is the gyroscope data address
                 # ![](./docs/AngularVelocity0x52.png)
                 elif data_type == 0x52:
                     gyro = tuple(v / 32768.0 * 2000.0 for v in values[:3])
