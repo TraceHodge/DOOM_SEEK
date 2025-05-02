@@ -6,6 +6,9 @@ from fastapi.staticfiles import StaticFiles
 import serial, struct, sys, asyncio, datetime
 import board
 import neopixel
+import neopixel
+import cv2
+import os
 
 app = FastAPI()
 app.mount("/ui", StaticFiles(directory="ui"), name="ui")
@@ -51,7 +54,6 @@ latest_control_input = {
 @app.post("/control")
 async def control_motors(data: MotorControl):
     # Update the latest control input properly
-    # This is the correct way to update the latest_control_input dictionary
     latest_control_input["timestamp"] = datetime.datetime.now().strftime('%H:%M:%S')
     latest_control_input["action"] = data.action
     latest_control_input["motor1_speed"] = data.motor1_speed
@@ -69,6 +71,26 @@ async def control_motors(data: MotorControl):
     elif data.action == "Turning Left":
         send_packatized_command(128, 1, data.motor1_speed)
         send_packatized_command(128, 4, data.motor2_speed)
+    elif data.action == "Take Picture": # Take picture uses openCV to capture a frame from the stream
+        # Your streaming URL
+        STREAM_URL = "rtsp://localhost:8554/webrtc/camB"  # Change cam depending on the camera you want to use
+        # Create the inspection folder if it doesn't exist
+        os.makedirs("inspection", exist_ok=True)
+        # OpenCV capture from the stream
+        cap = cv2.VideoCapture(STREAM_URL)
+        if not cap.isOpened():
+            print("Failed to open stream!")
+        else:
+            ret, frame = cap.read()
+            if ret:
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"inspection/snapshot_{timestamp}.jpg"
+                cv2.imwrite(filename, frame)
+                print(f"Snapshot saved: {filename}")
+            else:
+                print("Failed to grab frame!")
+        cap.release()
+        
     elif data.action == "Led On":
         pixels.fill((255, 255, 255))  # White LED
     elif data.action == "Led Off":
@@ -164,7 +186,7 @@ async def imu_loop():
                 if data_type == 0x51:
                     accel = tuple(v / 32768.0 * 16.0 for v in values[:3])
 
-                #0x52 is the gyroscope data address
+                #0x52 is the accelerometer data address
                 # ![](./docs/AngularVelocity0x52.png)
                 elif data_type == 0x52:
                     gyro = tuple(v / 32768.0 * 2000.0 for v in values[:3])
