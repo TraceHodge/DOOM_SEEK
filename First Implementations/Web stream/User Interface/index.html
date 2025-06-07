@@ -12,7 +12,6 @@
       color: #eee;
       display: flex;
       height: 100vh;
-      position: relative;
       overflow: hidden;
     }
     .left-panel {
@@ -63,7 +62,6 @@
       left: 20px;
       width: 280px;
       height: 200px;
-      border: none;
       box-shadow: 0 0 15px #48cae4;
       background-color: #000;
     }
@@ -85,17 +83,43 @@
       font-size: 18px;
       color: #90e0ef;
     }
-    h2 {
-      margin: 10px 0;
-      font-size: 22px;
-      color: #00b4d8;
+    .tab-buttons {
+      display: flex;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .tab-button {
+      background: linear-gradient(135deg, #0077b6, #00b4d8);
+      color: white;
+      font-weight: bold;
+      border: none;
+      padding: 8px 12px;
+      margin: 4px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 6px #00b4d8;
+      transition: transform 0.2s;
+    }
+    .tab-button:hover {
+      background: #0077b6;
+      transform: scale(1.05);
+    }
+    h2{
+  margin: 10px 0;
+  font-size: 22px;
+  color: #ffffff;
+  text-align: center;
+}
+    .tab-content {
+      width: 100%;
+      margin-top: 10px;
     }
     .control {
       background: linear-gradient(135deg, #0077b6, #00b4d8);
       border-radius: 10px;
       padding: 12px;
       margin-bottom: 12px;
-      width: 100%;
+      width: 95%;
       text-align: center;
       font-weight: bold;
       color: white;
@@ -116,7 +140,6 @@
       margin-left: -30px;
       background: rgba(0, 180, 216, 0.1);
       clip-path: polygon(50% 0%, 100% 100%, 50% 80%, 0% 100%);
-      transform: rotate(0deg);
       transform-origin: 50% 50%;
       pointer-events: none;
       z-index: 10;
@@ -127,11 +150,11 @@
   <div class="left-panel">
     <div class="camera-frame-main" id="main-camera" data-type="inspection">
       <div class="camera-label" id="main-label">Inspection Camera</div>
-      <iframe src="http://192.168.1.2:8889/webrtc/camB" title="Inspection Camera" id="main-iframe"></iframe>
+      <iframe src="http://192.168.1.2:8889/webrtc/camB" id="main-iframe"></iframe>
     </div>
     <div class="camera-frame-pip" id="pip-camera" data-type="driving">
       <div class="camera-label" id="pip-label">Driving Camera</div>
-      <iframe src="http://192.168.1.2:8889/webrtc/camA" title="Driving Camera" id="pip-iframe"></iframe>
+      <iframe src="http://192.168.1.2:8889/webrtc/camA" id="pip-iframe"></iframe>
       <div id="arrow-overlay"></div>
     </div>
   </div>
@@ -145,13 +168,29 @@
       <strong>Controller Inputs</strong>
       <div id="input-entry">Waiting for inputs...</div>
     </div>
-    <h2>Controller Guide</h2>
-    <div class="control">Left Analog = Turn</div>
-    <div class="control">R2 = Forward</div>
-    <div class="control">L2 = Reverse</div>
-    <div class="control">Dpad = Speed Change</div>
-    <div class="control">A = Led Control</div>
-    <div class="control">B = Picture</div>
+
+    <div class="tab-buttons">
+      <button class="tab-button" onclick="showTab('controller')">Controller Guide</button>
+      <button class="tab-button" onclick="showTab('keyboard')">Keyboard Controls</button>
+    </div>
+
+    <div id="controller-tab" class="tab-content">
+      <h2>Controller Guide</h2>
+      <div class="control">Left Analog = Turn</div>
+      <div class="control">R2 = Forward</div>
+      <div class="control">L2 = Reverse</div>
+      <div class="control">Dpad = Speed Change</div>
+      <div class="control">A = Led Control</div>
+      <div class="control">B = Picture</div>
+    </div>
+
+    <div id="keyboard-tab" class="tab-content" style="display: none;">
+      <h2>Keyboard Controls</h2>
+      <div class="control">W = Forward</div>
+      <div class="control">S = Reverse</div>
+      <div class="control">A = Turn Left</div>
+      <div class="control">D = Turn Right</div>
+    </div>
   </div>
 
   <script>
@@ -159,8 +198,8 @@
       try {
         const imuRes = await fetch('/imu');
         const imuData = await imuRes.json();
-        document.getElementById('imu-entry').innerHTML = `> [${imuData.timestamp}] Facing: ${imuData.facing} | Surface: ${imuData.surface}`;
-        document.getElementById('arrow-overlay').style.transform = `rotate(${imuData.facing}deg)`;
+        document.getElementById('imu-entry').innerHTML =
+          `> [${imuData.timestamp}] Facing: ${imuData.facing} | Surface: ${imuData.surface}`;
       } catch (err) {
         console.error('IMU fetch error:', err);
       }
@@ -170,8 +209,8 @@
       try {
         const inputRes = await fetch('http://192.168.1.2:8000/input');
         const inputData = await inputRes.json();
-        document.getElementById('input-entry').textContent = `> [${inputData.timestamp}] Action: ${inputData.action} | M1: ${inputData.motor1_speed} | M2: ${inputData.motor2_speed}`;
-
+        document.getElementById('input-entry').textContent =
+          `> [${inputData.timestamp}] Action: ${inputData.action} | M1: ${inputData.motor1_speed} | M2: ${inputData.motor2_speed}`;
       } catch (err) {
         console.error('Input fetch error:', err);
       }
@@ -208,10 +247,14 @@
       const arrow = document.getElementById('arrow-overlay');
       if (mainCamera.getAttribute('data-type') === 'driving') {
         mainCamera.appendChild(arrow);
-      }
-      else { 
+      } else {
         pipCamera.appendChild(arrow);
       }
+    }
+
+    function showTab(tabName) {
+      document.getElementById('controller-tab').style.display = tabName === 'controller' ? 'block' : 'none';
+      document.getElementById('keyboard-tab').style.display = tabName === 'keyboard' ? 'block' : 'none';
     }
   </script>
 </body>
