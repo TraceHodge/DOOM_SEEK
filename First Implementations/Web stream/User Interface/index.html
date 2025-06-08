@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Robot UI with IMU</title>
+  <meta charset="UTF-8" />
+  <title>Robot UI</title>
   <style>
     body {
       margin: 0;
@@ -14,24 +14,26 @@
       height: 100vh;
       overflow: hidden;
     }
+
     .left-panel {
       flex: 2;
-      position: relative;
-      padding: 10px;
       display: flex;
       flex-direction: column;
       gap: 10px;
+      padding: 10px;
     }
+
     .right-panel {
       flex: 1;
-      background-color: #1a1a1a;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: 20px;
+      background-color: #1a1a1a;
       border-left: 3px solid #444;
       box-shadow: -5px 0 10px rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      overflow-y: auto;
     }
+
     .camera-label {
       font-size: 18px;
       padding: 8px;
@@ -41,6 +43,7 @@
       font-weight: bold;
       border-radius: 10px 10px 0 0;
     }
+
     .camera-frame-main, .camera-frame-pip {
       background-color: #111;
       border-radius: 10px;
@@ -49,13 +52,16 @@
       flex-grow: 1;
       position: relative;
     }
+
     .camera-frame-main iframe,
     .camera-frame-pip iframe {
       width: 100%;
       height: 100%;
       border: none;
-      object-fit: cover;
+      object-fit: fill;
+      transition: transform 0.4s ease, width 0.4s ease, height 0.4s ease;
     }
+
     .camera-frame-pip {
       position: absolute;
       bottom: 20px;
@@ -65,84 +71,73 @@
       box-shadow: 0 0 15px #48cae4;
       background-color: #000;
     }
+
+    .rotate-0 { transform: rotate(0deg) scale(1); }
+    .rotate-90 { transform: rotate(-90deg) scale(1.25); }
+    .rotate-270 { transform: rotate(90deg) scale(1.25); }
+    .rotate-180 { transform: rotate(180deg); }
+
     .imu-log {
-      width: 100%;
       background: #121212;
       border: 2px solid #00b4d8;
       padding: 15px;
       font-size: 14px;
-      height: 200px;
-      overflow-y: auto;
-      margin-bottom: 20px;
       border-radius: 10px;
       box-shadow: 0 0 10px #00b4d8;
+      margin-bottom: 20px;
     }
+
     .imu-log strong {
       display: block;
       margin-bottom: 8px;
       font-size: 18px;
       color: #90e0ef;
     }
+
     .tab-buttons {
       display: flex;
-      width: 100%;
+      gap: 10px;
       margin-bottom: 10px;
     }
+
     .tab-button {
-      background: linear-gradient(135deg, #0077b6, #00b4d8);
+      flex: 1;
+      background: linear-gradient(90deg, #004aad, #00b4d8);
+      border: none;
+      padding: 10px;
       color: white;
       font-weight: bold;
-      border: none;
-      padding: 8px 12px;
-      margin: 4px;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
-      box-shadow: 0 0 6px #00b4d8;
-      transition: transform 0.2s;
     }
-    .tab-button:hover {
-      background: #0077b6;
-      transform: scale(1.05);
+
+    .tab-button.active {
+      background: #00b4d8;
     }
-    h2{
-  margin: 10px 0;
-  font-size: 22px;
-  color: #ffffff;
-  text-align: center;
-}
+
     .tab-content {
-      width: 100%;
-      margin-top: 10px;
+      display: none;
     }
-    .control {
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .control, .camera-control {
       background: linear-gradient(135deg, #0077b6, #00b4d8);
       border-radius: 10px;
       padding: 12px;
       margin-bottom: 12px;
-      width: 95%;
       text-align: center;
       font-weight: bold;
       color: white;
       box-shadow: 0 0 10px #00b4d8;
       transition: transform 0.2s;
     }
-    .control:hover {
+
+    .control:hover, .camera-control:hover {
       transform: scale(1.05);
       cursor: pointer;
-    }
-    #arrow-overlay {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 60px;
-      height: 60px;
-      margin-top: -30px;
-      margin-left: -30px;
-      background: rgba(0, 180, 216, 0.1);
-      clip-path: polygon(50% 0%, 100% 100%, 50% 80%, 0% 100%);
-      transform-origin: 50% 50%;
-      pointer-events: none;
-      z-index: 10;
     }
   </style>
 </head>
@@ -150,12 +145,11 @@
   <div class="left-panel">
     <div class="camera-frame-main" id="main-camera" data-type="inspection">
       <div class="camera-label" id="main-label">Inspection Camera</div>
-      <iframe src="http://192.168.1.2:8889/webrtc/camB" id="main-iframe"></iframe>
+      <iframe src="http://192.168.1.2:8889/webrtc/camB" id="main-iframe" class="rotate-0"></iframe>
     </div>
     <div class="camera-frame-pip" id="pip-camera" data-type="driving">
       <div class="camera-label" id="pip-label">Driving Camera</div>
-      <iframe src="http://192.168.1.2:8889/webrtc/camA" id="pip-iframe"></iframe>
-      <div id="arrow-overlay"></div>
+      <iframe src="http://192.168.1.2:8889/webrtc/camA" id="pip-iframe" class="rotate-0"></iframe>
     </div>
   </div>
 
@@ -164,18 +158,19 @@
       <strong>IMU Log</strong>
       <div id="imu-entry">Waiting for data...</div>
     </div>
+
     <div class="imu-log" id="input-log">
       <strong>Controller Inputs</strong>
       <div id="input-entry">Waiting for inputs...</div>
     </div>
 
     <div class="tab-buttons">
-      <button class="tab-button" onclick="showTab('controller')">Controller Guide</button>
+      <button class="tab-button active" onclick="showTab('guide')">Controller Guide</button>
+      <button class="tab-button keyboard" onclick="showTab('camera')">Camera Controls</button>
       <button class="tab-button" onclick="showTab('keyboard')">Keyboard Controls</button>
     </div>
 
-    <div id="controller-tab" class="tab-content">
-      <h2>Controller Guide</h2>
+    <div id="guide" class="tab-content keyboard">
       <div class="control">Left Analog = Turn</div>
       <div class="control">R2 = Forward</div>
       <div class="control">L2 = Reverse</div>
@@ -183,17 +178,67 @@
       <div class="control">A = Led Control</div>
       <div class="control">B = Picture</div>
     </div>
-
-    <div id="keyboard-tab" class="tab-content" style="display: none;">
-      <h2>Keyboard Controls</h2>
+    
+    <div id="keyboard" class="tab-content active">
+      <div class="control">A = Left Turn</div>
+      <div class="control">D =Right Turn</div>
       <div class="control">W = Forward</div>
       <div class="control">S = Reverse</div>
-      <div class="control">A = Turn Left</div>
-      <div class="control">D = Turn Right</div>
+    </div>
+
+    <div id="camera" class="tab-content">
+      <div class="camera-control" onclick="rotateCameras(0)">Reset Rotation</div>
+      <div class="camera-control" onclick="rotateCameras(90)">Rotate Left 90°</div>
+      <div class="camera-control" onclick="rotateCameras(270)">Rotate Right 90°</div>
+      <div class="camera-control" onclick="rotateCameras(180)">Rotate 180°</div>
     </div>
   </div>
 
   <script>
+    const mainIframe = document.getElementById('main-iframe');
+    const pipIframe = document.getElementById('pip-iframe');
+
+    function rotateCameras(deg) {
+      const classes = ["rotate-0", "rotate-90", "rotate-180", "rotate-270"];
+      mainIframe.classList.remove(...classes);
+      pipIframe.classList.remove(...classes);
+
+      if (deg === 90) {
+        mainIframe.classList.add('rotate-90');
+        pipIframe.classList.add('rotate-90');
+      } else if (deg === 270) {
+        mainIframe.classList.add('rotate-270');
+        pipIframe.classList.add('rotate-270');
+      } else if (deg === 180) {
+        mainIframe.classList.add('rotate-180');
+        pipIframe.classList.add('rotate-180');
+      } else {
+        mainIframe.classList.add('rotate-0');
+        pipIframe.classList.add('rotate-0');
+      }
+    }
+
+    function showTab(tabId) {
+      const buttons = document.querySelectorAll('.tab-button');
+      const tabs = document.querySelectorAll('.tab-content');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      tabs.forEach(tab => tab.classList.remove('active'));
+
+      document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    async function fetchInput() {
+      try {
+        const res = await fetch('http://192.168.1.2:8000/input');
+        const data = await res.json();
+        document.getElementById('input-entry').textContent =
+          `> [${data.timestamp}] Action: ${data.action} | M1: ${data.motor1_speed} | M2: ${data.motor2_speed}`;
+      } catch (err) {
+        console.error('Input fetch error:', err);
+      }
+    }
+
     async function fetchIMU() {
       try {
         const imuRes = await fetch('/imu');
@@ -205,17 +250,6 @@
       }
     }
 
-    async function fetchInput() {
-      try {
-        const inputRes = await fetch('http://192.168.1.2:8000/input');
-        const inputData = await inputRes.json();
-        document.getElementById('input-entry').textContent =
-          `> [${inputData.timestamp}] Action: ${inputData.action} | M1: ${inputData.motor1_speed} | M2: ${inputData.motor2_speed}`;
-      } catch (err) {
-        console.error('Input fetch error:', err);
-      }
-    }
-
     setInterval(() => {
       fetchIMU();
       fetchInput();
@@ -223,8 +257,6 @@
 
     const mainCamera = document.getElementById('main-camera');
     const pipCamera = document.getElementById('pip-camera');
-    const mainIframe = document.getElementById('main-iframe');
-    const pipIframe = document.getElementById('pip-iframe');
     const mainLabel = document.getElementById('main-label');
     const pipLabel = document.getElementById('pip-label');
 
@@ -243,18 +275,6 @@
       const tempType = mainCamera.getAttribute('data-type');
       mainCamera.setAttribute('data-type', pipCamera.getAttribute('data-type'));
       pipCamera.setAttribute('data-type', tempType);
-
-      const arrow = document.getElementById('arrow-overlay');
-      if (mainCamera.getAttribute('data-type') === 'driving') {
-        mainCamera.appendChild(arrow);
-      } else {
-        pipCamera.appendChild(arrow);
-      }
-    }
-
-    function showTab(tabName) {
-      document.getElementById('controller-tab').style.display = tabName === 'controller' ? 'block' : 'none';
-      document.getElementById('keyboard-tab').style.display = tabName === 'keyboard' ? 'block' : 'none';
     }
   </script>
 </body>
