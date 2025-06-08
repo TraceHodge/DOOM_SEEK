@@ -139,6 +139,21 @@
       transform: scale(1.05);
       cursor: pointer;
     }
+    #arrow-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 60px;
+      height: 60px;
+      margin-top: -30px;
+      margin-left: -30px;
+      background: rgba(0, 180, 216, 0.1);
+      clip-path: polygon(50% 0%, 100% 100%, 50% 80%, 0% 100%);
+      transform: rotate(0deg);
+      transform-origin: 50% 50%;
+      pointer-events: none;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
@@ -150,6 +165,7 @@
     <div class="camera-frame-pip" id="pip-camera" data-type="driving">
       <div class="camera-label" id="pip-label">Driving Camera</div>
       <iframe src="http://192.168.1.2:8889/webrtc/camA" id="pip-iframe" class="rotate-0"></iframe>
+      <div id="arrow-overlay"></div>
     </div>
   </div>
 
@@ -180,10 +196,10 @@
     </div>
     
     <div id="keyboard" class="tab-content active">
-      <div class="control">A = Left Turn</div>
-      <div class="control">D =Right Turn</div>
       <div class="control">W = Forward</div>
       <div class="control">S = Reverse</div>
+      <div class="control">A = Left Turn</div>
+      <div class="control">D = Right Turn</div>
     </div>
 
     <div id="camera" class="tab-content">
@@ -275,6 +291,13 @@
       const tempType = mainCamera.getAttribute('data-type');
       mainCamera.setAttribute('data-type', pipCamera.getAttribute('data-type'));
       pipCamera.setAttribute('data-type', tempType);
+
+      const arrow = document.getElementById('arrow-overlay');
+      if (mainCamera.getAttribute('data-type') === 'driving') {
+        mainCamera.appendChild(arrow);
+      } else {
+        pipCamera.appendChild(arrow);
+      }
     }
   </script>
 </body>
