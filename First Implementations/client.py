@@ -61,7 +61,7 @@ def main():
                     if not keyboard_detected:
                         print("Keyboard input detected. Keyboard control is active.")
                         keyboard_detected = True
-
+#----------------------------- Keyboard Buttons ---------------------------- #
                     if event.key in [pygame.K_w, pygame.K_UP]:
                         keyboard_state["up"] = True
                     if event.key in [pygame.K_s, pygame.K_DOWN]:
@@ -80,7 +80,7 @@ def main():
                         keyboard_state["left"] = False
                     if event.key in [pygame.K_d, pygame.K_RIGHT]:
                         keyboard_state["right"] = False
-
+# ------------------------------ Joystick Buttons ---------------------------- #
                 if event.type == pygame.JOYBUTTONDOWN and pygame.joystick.get_count() > 0:
                     if joystick.get_button(11):
                         base_speed = min(base_speed + 5, max_speed)
@@ -115,11 +115,38 @@ def main():
                                 print(f"Failed to send Picture command: {response.status_code}")
                         except requests.exceptions.RequestException as e:
                             print(f"Error sending Picture command: {e}")
+                    if joystick.get_button(10):
+                        print("Zoom In")
+                        data = {
+                            "motor1_speed": 0,
+                            "motor2_speed": 0,
+                            "action": "Zoom In"
+                        }
+                        try:
+                            response = requests.post(SERVER_URL, json=data)
+                            if response.status_code != 200:
+                                print(f"Failed to send Picture command: {response.status_code}")
+                        except requests.exceptions.RequestException as e:
+                            print(f"Error sending Picture command: {e}")
+                    
+                    if joystick.get_button(9):
+                        print("Zoom Out")
+                        data = {
+                            "motor1_speed": 0,
+                            "motor2_speed": 0,
+                            "action": "Zoom Out"
+                        }
+                        try:
+                            response = requests.post(SERVER_URL, json=data)
+                            if response.status_code != 200:
+                                print(f"Failed to send Picture command: {response.status_code}")
+                        except requests.exceptions.RequestException as e:
+                            print(f"Error sending Picture command: {e}")
 
             # Default values
             action = "stop"
             motor1_speed = motor2_speed = 0
-
+#----------------------------- Keyboard Controls ---------------------------- #
             # Smooth keyboard motion
             if keyboard_state["up"]:
                 action = "forward"
@@ -147,7 +174,7 @@ def main():
             elif keyboard_state["right"]:
                 action = "Turning Right"
                 motor1_speed = motor2_speed = base_speed * 0.5
-
+#----------------------------- Joystick Controls ---------------------------- #
             # Joystick fallback (if no keyboard input)
             elif pygame.joystick.get_count() > 0:
                 joystick = pygame.joystick.Joystick(0)

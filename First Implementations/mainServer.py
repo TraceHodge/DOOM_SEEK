@@ -9,6 +9,7 @@ import neopixel
 import neopixel
 import cv2
 import os
+from camera_control import camA_zoom_in,camB_zoom_in,camA_zoom_out,camB_zoom_out
 
 app = FastAPI()
 app.mount("/ui", StaticFiles(directory="ui"), name="ui")
@@ -93,6 +94,10 @@ async def control_motors(data: MotorControl):
         
     elif data.action == "Led On":
         pixels.fill((255, 255, 255))  # White LED
+    elif data.action == "Zoom In":
+        camA_zoom_in()
+    elif data.action == "Zoom Out":
+        camA_zoom_out()
     elif data.action == "Led Off":
         pixels.fill((0, 0, 0))  # Turn off LED
     else:
