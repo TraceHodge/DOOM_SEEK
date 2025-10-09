@@ -1,7 +1,7 @@
 # This FastAPI server integrates motor control and IMU telemetry with a UI
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 import serial, struct, sys, asyncio, datetime
 import board
@@ -9,6 +9,8 @@ import neopixel
 import neopixel
 import cv2
 import os
+import glob
+import shutil
 from camera_control import camA_zoom_in,camB_zoom_in,camA_zoom_out,camB_zoom_out
 
 app = FastAPI()
@@ -95,9 +97,9 @@ async def control_motors(data: MotorControl):
     elif data.action == "Led On":
         pixels.fill((255, 255, 255))  # White LED
     elif data.action == "Zoom In":
-        camB_zoom_in()
+        camA_zoom_in()
     elif data.action == "Zoom Out":
-        camB_zoom_out()
+        camA_zoom_out()
     elif data.action == "Led Off":
         pixels.fill((0, 0, 0))  # Turn off LED
     else:
@@ -140,11 +142,72 @@ def parse_data(packet):
         return None, None
     return packet[1], struct.unpack('<hhhh', packet[2:10])
 
-def direction(yaw):
-    dirs = ["North", "NE", "East", "SE", "South", "SW", "West", "NW"]
-    return dirs[int((yaw + 22.5) % 360 // 45)]
+# Wall labeling system - calibrated at startup
+wall_calibration = {
+    "reference_yaw": None,  # Yaw angle when starting at Wall A
+    "reference_surface": None,  # Which surface type is Wall A
+    "is_calibrated": False
+}
 
-def surface(pitch, roll):
+def get_wall_label(yaw, current_surface):
+    """
+    Label walls as A, B, C, D based on starting position.
+    Wall A = starting wall
+    Wall B = 90° clockwise from A
+    Wall C = opposite of A
+    Wall D = 90° counter-clockwise from A
+    """
+    if not wall_calibration["is_calibrated"]:
+        return "Calibrating..."
+
+    # Only label actual walls, not floor/ceiling
+    if current_surface not in ["Left Wall", "Right Wall", "Front Wall", "Back Wall"]:
+        return current_surface
+
+    # Calculate relative angle from starting position
+    ref_yaw = wall_calibration["reference_yaw"]
+    angle_diff = (yaw - ref_yaw) % 360
+
+    # Determine which wall based on rotation
+    # 0° = Wall A, 90° = Wall B, 180° = Wall C, 270° = Wall D
+    if angle_diff < 45 or angle_diff >= 315:
+        return "Wall A"
+    elif 45 <= angle_diff < 135:
+        return "Wall B"
+    elif 135 <= angle_diff < 225:
+        return "Wall C"
+    else:
+        return "Wall D"
+
+def surface(pitch, roll, accel=None):
+    """
+    Enhanced surface detection using gravity vector from accelerometer.
+    The accelerometer measures gravity direction - this tells us which surface we're on.
+
+    Gravity components:
+    - Z-axis negative (az < -0.7): Gravity pulling down → Floor
+    - Z-axis positive (az > 0.7): Gravity pulling up → Ceiling
+    - X-axis negative (ax < -0.7): Gravity pulling left → Left Wall
+    - X-axis positive (ax > 0.7): Gravity pulling right → Right Wall
+    - Y-axis negative (ay < -0.7): Gravity pulling forward → Front Wall
+    - Y-axis positive (ay > 0.7): Gravity pulling backward → Back Wall
+    """
+    if accel:
+        ax, ay, az = accel
+
+        # Use accelerometer to detect gravity direction (most accurate)
+        # Threshold of 0.7g means axis is within ~45° of vertical
+        if abs(az) > 0.7:
+            return "Floor" if az < 0 else "Ceiling"
+        elif abs(ax) > 0.7:
+            return "Left Wall" if ax < 0 else "Right Wall"
+        elif abs(ay) > 0.7:
+            return "Front Wall" if ay < 0 else "Back Wall"
+        else:
+            # Transitioning between surfaces or at an angle
+            return "Transitioning"
+
+    # Fallback to pitch/roll if no accelerometer data
     if abs(pitch) < 45 and abs(roll) < 45:
         return "Floor"
     elif abs(pitch) > 135 or abs(roll) > 135:
@@ -153,10 +216,11 @@ def surface(pitch, roll):
 
 latest_imu_data = {
     "timestamp": None,
-    "facing": "N/A",
+    "location": "N/A",  # Changed from "facing" - now shows Wall A/B/C/D or Floor/Ceiling
     "surface": "N/A",
     "accel": None,
-    "gyro": None
+    "gyro": None,
+    "yaw": None  # Track raw yaw for debugging
 }
 #app.get("/imu") returns the latest IMU data to the UI
 @app.get("/imu")
@@ -204,20 +268,126 @@ async def imu_loop():
                     yaw = values[2] / 32768.0 * 180.0
 
                     timestamp = datetime.datetime.now().strftime('%H:%M:%S')
-                    facing = direction(yaw)
-                    surf = surface(pitch, roll)
+                    surf = surface(pitch, roll, accel)  # Get surface type
+                    location = get_wall_label(yaw, surf)  # Convert to Wall A/B/C/D
+
+                    # Auto-calibrate on first wall detection
+                    if not wall_calibration["is_calibrated"] and "Wall" in surf:
+                        wall_calibration["reference_yaw"] = yaw
+                        wall_calibration["reference_surface"] = surf
+                        wall_calibration["is_calibrated"] = True
+                        print(f"✓ Calibrated! Starting wall set as Wall A at yaw={yaw:.1f}°")
 
                     latest_imu_data.update({
                         "timestamp": timestamp,
-                        "facing": facing,
+                        "location": location,
                         "surface": surf,
                         "accel": accel,
-                        "gyro": gyro
+                        "gyro": gyro,
+                        "yaw": yaw
                     })
-                    print(f"[{timestamp}] Facing: {facing} | Surface: {surf}")
+                    print(f"[{timestamp}] Location: {location} | Surface: {surf}")
             await asyncio.sleep(0)
     except Exception as e:
         print(f"IMU error: {e}")
+
+# Recording management endpoints
+@app.get("/recordings")
+async def list_recordings():
+    """List all available recordings"""
+    try:
+        recordings_dir = "./recordings"
+        if not os.path.exists(recordings_dir):
+            os.makedirs(recordings_dir)
+            return {"recordings": []}
+
+        # Get all recording files
+        recording_files = []
+        for ext in ['*.mp4', '*.avi', '*.mkv', '*.webm', '*.ts']:
+            recording_files.extend(glob.glob(os.path.join(recordings_dir, "**", ext), recursive=True))
+
+        recordings = []
+        for file_path in recording_files:
+            file_stat = os.stat(file_path)
+            recordings.append({
+                "filename": os.path.basename(file_path),
+                "path": file_path.replace("./recordings/", ""),
+                "size": file_stat.st_size,
+                "modified": datetime.datetime.fromtimestamp(file_stat.st_mtime).isoformat(),
+                "size_mb": round(file_stat.st_size / (1024 * 1024), 2)
+            })
+
+        # Sort by modification time (newest first)
+        recordings.sort(key=lambda x: x['modified'], reverse=True)
+        return {"recordings": recordings}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing recordings: {str(e)}")
+
+@app.get("/recordings/download/{path:path}")
+async def download_recording(path: str):
+    """Download a specific recording file"""
+    try:
+        file_path = os.path.join("./recordings", path)
+
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Recording not found")
+
+        def file_generator():
+            with open(file_path, "rb") as file:
+                while chunk := file.read(8192):
+                    yield chunk
+
+        return StreamingResponse(
+            file_generator(),
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f"attachment; filename={os.path.basename(file_path)}"}
+        )
+
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Recording not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error downloading recording: {str(e)}")
+
+@app.delete("/recordings/{path:path}")
+async def delete_recording(path: str):
+    """Delete a specific recording file"""
+    try:
+        file_path = os.path.join("./recordings", path)
+
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Recording not found")
+
+        os.remove(file_path)
+        return {"message": f"Recording {path} deleted successfully"}
+
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Recording not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting recording: {str(e)}")
+
+@app.get("/recordings/cleanup")
+async def cleanup_old_recordings():
+    """Delete recordings older than 7 days"""
+    try:
+        recordings_dir = "./recordings"
+        if not os.path.exists(recordings_dir):
+            return {"message": "No recordings directory found", "deleted": 0}
+
+        cutoff_time = datetime.datetime.now() - datetime.timedelta(days=7)
+        deleted_count = 0
+
+        for root, dirs, files in os.walk(recordings_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                if os.path.getmtime(file_path) < cutoff_time.timestamp():
+                    os.remove(file_path)
+                    deleted_count += 1
+
+        return {"message": f"Cleanup completed", "deleted": deleted_count}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error during cleanup: {str(e)}")
 
 @app.on_event("startup")
 async def startup_event():
