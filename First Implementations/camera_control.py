@@ -10,11 +10,10 @@ cam_zoom = {
 # Start Camera B
 def start_camB():
     cmd = (
-       "ffmpeg -f v4l2 -input_format mjpeg -framerate 30 -video_size 1920x1080 "
+       "ffmpeg -f v4l2 -input_format h264 -framerate 30 -video_size 1920x1080 "
         "-i /dev/video2 "
-        "-vcodec libx264 -preset ultrafast -tune zerolatency -crf 1 "
-        "-b:v 4M -maxrate 8M -bufsize 16M "
-        "-g 30 -keyint_min 30 "
+        "-c:v copy -an "
+        "-b:v 10M -maxrate 20M -bufsize 4M "
         "-f rtsp rtsp://localhost:8554/webrtc/camB "
         "> logs/camB.log 2>&1 &"
     )
@@ -24,11 +23,10 @@ def start_camB():
 # Start Camera A
 def start_camA():
     cmd = (
-        "ffmpeg -f v4l2 -input_format mjpeg -framerate 20 -video_size 1920x1080 "
+        "ffmpeg -f v4l2 -input_format h264 -framerate 30 -video_size 1920x1080 "
         "-i /dev/video0 "
-        "-vcodec libx264 -preset ultrafast -tune zerolatency -crf 9 "
-        "-b:v 1M -maxrate 2M -bufsize 4M "
-        "-g 30 -keyint_min 30 "
+        "-c:v copy -an "
+        "-b:v 10M -maxrate 20M -bufsize 4M "
         "-f rtsp rtsp://localhost:8554/webrtc/camA "
         "> logs/camA.log 2>&1 &"
     )
