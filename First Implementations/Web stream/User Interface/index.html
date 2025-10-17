@@ -1,375 +1,1752 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Robot UI</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOOMSEEK - Transformer Inspection Robot Control</title>
   <style>
-    /* ---------- Base Layout ---------- */
-    body {
+    * {
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #0d0d0d;
-      color: #eee;
-      display: flex;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #00d4ff;
+      --secondary-color: #ff6b35;
+      --danger-color: #ff3838;
+      --success-color: #00ff88;
+      --warning-color: #ffaa00;
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #141824;
+      --bg-tertiary: #1e2433;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a8b8;
+      --border-color: #2a3244;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, #0f1419 100%);
+      color: var(--text-primary);
       height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      background: var(--bg-secondary);
+      border-bottom: 2px solid var(--primary-color);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 20px rgba(0, 212, 255, 0.2);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       overflow: hidden;
     }
 
-    .left-panel {
-      flex: 2;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 10px;
+    .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
+    .logo-text h1 {
+      font-size: 24px;
+      font-weight: 700;
+      background: var(--primary-color);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-text span {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--bg-tertiary);
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success-color);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .emergency-stop {
+      padding: 10px 24px;
+      background: var(--danger-color);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(255, 56, 56, 0.3);
+    }
+
+    .emergency-stop:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(255, 56, 56, 0.5);
+    }
+
+    /* Main Layout */
+    .main-container {
+      flex: 1;
+      display: flex;
+      gap: 15px;
+      padding: 15px;
+      overflow: auto;
+      max-height: calc(100vh - 80px);
+    }
+
+    /* Left Panel - Cameras */
+    .left-panel {
+      flex: 2.5;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .camera-container {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+    }
+
+    .camera-header {
+      background: linear-gradient(90deg, var(--bg-tertiary), var(--bg-secondary));
+      padding: 10px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .camera-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+
+    .camera-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success-color);
+    }
+
+    .camera-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .camera-btn {
+      padding: 6px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 12px;
+    }
+
+    .camera-btn:hover {
+      background: var(--primary-color);
+      color: var(--text-primary);
+      border-color: var(--primary-color);
+    }
+
+    .camera-view {
+      position: relative;
+      background: #000;
+      height: 100%;
+    }
+
+    .main-camera {
+      height: 65%;
+    }
+
+    .main-camera .camera-view {
+      height: calc(100% - 50px);
+    }
+
+    .secondary-camera {
+      height: 35%;
+    }
+
+    .secondary-camera .camera-view {
+      height: calc(100% - 50px);
+    }
+
+    .camera-view iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+
+    .recording-indicator {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(255, 0, 0, 0.8);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .recording-indicator.active {
+      display: flex;
+    }
+
+    .rec-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: white;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Middle Panel - Status */
+    .middle-panel {
+      flex: 1.5;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .status-card {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 15px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .status-header {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-icon {
+      width: 20px;
+      height: 20px;
+      background: var(--primary-color);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .mission-timer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .timer-display {
+      font-size: 24px;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      color: var(--primary-color);
+    }
+
+    .wheel-status {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .wheel-card {
+      background: var(--bg-tertiary);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s;
+    }
+
+    .wheel-card.engaged {
+      border-color: var(--success-color);
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+    }
+
+    .wheel-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .wheel-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .magnet-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-left: 8px;
+    }
+
+    .magnet-active {
+      background: var(--success-color);
+    }
+
+    .magnet-inactive {
+      background: var(--text-secondary);
+    }
+
+    .gauge-container {
+      margin: 15px 0;
+    }
+
+    .gauge {
+      height: 120px;
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gauge-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+      transition: height 0.5s ease;
+    }
+
+    .gauge-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 1;
+    }
+
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .sensor-item {
+      background: var(--bg-tertiary);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .sensor-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .sensor-value {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* Right Panel - Controls */
     .right-panel {
       flex: 1;
       display: flex;
       flex-direction: column;
-      background-color: #1a1a1a;
-      border-left: 3px solid #444;
-      box-shadow: -5px 0 10px rgba(0, 0, 0, 0.5);
-      padding: 20px;
+      gap: 15px;
       overflow-y: auto;
+      max-height: calc(100vh - 110px);
     }
 
-    /* ---------- Camera Frames ---------- */
-    .camera-label {
-      font-size: 18px;
-      padding: 8px;
-      text-align: center;
-      background: linear-gradient(90deg, #004aad, #00b4d8);
-      color: white;
-      font-weight: bold;
-      border-radius: 10px 10px 0 0;
-    }
-
-    .camera-frame-main,
-    .camera-frame-pip {
-      background-color: #111;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 0 10px #0077b6;
-      flex-grow: 1;
-      position: relative;
-    }
-
-    .camera-frame-main iframe,
-    .camera-frame-pip iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      object-fit: fill;
-      transition: transform 0.4s ease, width 0.4s ease, height 0.4s ease;
-    }
-
-    .camera-frame-pip {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      width: 280px;
-      height: 200px;
-      box-shadow: 0 0 15px #48cae4;
-      background-color: #000;
-    }
-
-    .rotate-0 { transform: rotate(0deg)   scale(1);   }
-    .rotate-90{ transform: rotate(-90deg) scale(1.25); }
-    .rotate-270{ transform: rotate(90deg) scale(1.25); }
-    .rotate-180{ transform: rotate(180deg);             }
-
-    /* ---------- Logs ---------- */
-    .imu-log {
-      background: #121212;
-      border: 2px solid #00b4d8;
+    .control-section {
+      background: var(--bg-secondary);
+      border-radius: 12px;
       padding: 15px;
-      font-size: 14px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px #00b4d8;
-      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
     }
 
-    .imu-log strong {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 18px;
-      color: #90e0ef;
-    }
-
-    /* ---------- Top‑Level Tabs ---------- */
-    .top-tab-buttons {
+    .control-tabs {
       display: flex;
-      gap: 10px;
+      gap: 5px;
+      margin-bottom: 15px;
+      background: var(--bg-tertiary);
+      padding: 4px;
+      border-radius: 8px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .tab-btn.active {
+      background: var(--primary-color);
+      color: var(--text-primary);
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .control-btn {
+      padding: 15px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .control-btn:hover {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+    }
+
+    .control-btn:active {
+      transform: translateY(0);
+    }
+
+    .control-icon {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .speed-control {
+      margin-top: 15px;
+    }
+
+    .speed-slider {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--bg-tertiary);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .speed-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      cursor: pointer;
+    }
+
+    .speed-display {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .recording-item {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      transition: all 0.3s;
+    }
+
+    .recording-item:hover {
+      border-color: var(--primary-color);
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    .recording-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+
+    .recording-details {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .recording-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .recording-btn {
+      padding: 4px 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 10px;
+      flex: 1;
+      text-align: center;
+    }
+
+    .recording-btn:hover {
+      background: var(--primary-color);
+      color: var(--text-primary);
+      border-color: var(--primary-color);
+    }
+
+    .recording-btn.delete {
+      background: var(--danger-color);
+      border-color: var(--danger-color);
+      color: white;
+    }
+
+    .recording-btn.delete:hover {
+      background: #ff5555;
+    }
+
+    /* Layout adjustments for recordings tab */
+    .recordings-active .right-panel {
+      max-height: none;
+      overflow-y: visible;
+    }
+
+    /* Move system logs to middle panel when recordings tab is active */
+    .recordings-active #input-log-box,
+    .recordings-active #system-log-box {
+      display: none;
+    }
+
+    .recordings-active .middle-panel {
+      flex-direction: column;
+    }
+
+    /* Create temporary containers in middle panel for moved logs */
+    .middle-panel .temp-logs {
+      display: none;
+    }
+
+    .recordings-active .middle-panel .temp-logs {
+      display: block;
+      margin-top: 15px;
+    }
+
+    .system-log {
       margin-bottom: 15px;
     }
 
-    .top-tab-button {
-      flex: 1;
-      background: linear-gradient(90deg, #004aad, #00b4d8);
-      border: none;
-      padding: 10px;
-      color: white;
-      font-weight: bold;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.25s ease;
+    .log-box {
+      background: var(--bg-secondary);
+      border: 2px solid var(--primary-color);
+      padding: 15px;
+      font-size: 14px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
     }
 
-    .top-tab-button.active {
-      background: #00b4d8;
+    .log-box strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 16px;
+      color: var(--primary-color);
+      font-weight: 600;
     }
 
-    .top-tab-content { display: none; }
-    .top-tab-content.active { display: block; }
-
-    /* ---------- Secondary (Controls) Tabs ---------- */
-    .tab-buttons {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
+    .log-box div {
+      color: var(--text-primary);
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.4;
     }
 
-    .tab-button {
-      flex: 1;
-      background: linear-gradient(90deg, #004aad, #00b4d8);
-      border: none;
-      padding: 10px;
-      color: white;
-      font-weight: bold;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.25s ease;
+    /* Responsive */
+    @media (max-width: 1400px) {
+      .main-container {
+        gap: 10px;
+        padding: 10px;
+      }
+
+      .control-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      /* Force scroll on smaller screens */
+      .right-panel {
+        max-height: calc(100vh - 140px);
+      }
     }
 
-    .tab-button.active {
-      background: #00b4d8;
+    @media (max-width: 1024px) {
+      .middle-panel {
+        display: none;
+      }
+
+      .left-panel {
+        flex: 2;
+      }
+
+      .right-panel {
+        max-height: calc(50vh - 60px);
+        overflow-y: auto;
+      }
     }
 
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    @media (max-width: 768px) {
+      .recordings-active .recording-item {
+        padding: 6px;
+      }
 
-    /* ---------- Controls Styling ---------- */
-    .control,
-    .camera-control {
-      background: linear-gradient(135deg, #0077b6, #00b4d8);
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 12px;
-      text-align: center;
-      font-weight: bold;
-      color: white;
-      box-shadow: 0 0 10px #00b4d8;
-      transition: transform 0.2s ease;
-    }
-
-    .control:hover,
-    .camera-control:hover {
-      transform: scale(1.05);
-      cursor: pointer;
-    }
-
-    /* ---------- Arrow Overlay ---------- */
-    #arrow-overlay {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 60px;
-      height: 60px;
-      margin-top: -30px;
-      margin-left: -30px;
-      background: rgba(0, 180, 216, 0.1);
-      clip-path: polygon(50% 0%, 100% 100%, 50% 80%, 0% 100%);
-      transform: rotate(0deg);
-      transform-origin: 50% 50%;
-      pointer-events: none;
-      z-index: 10;
+      .recordings-active .recording-actions {
+        flex-direction: column;
+        gap: 3px;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- ========== LEFT PANEL (Cameras) ========== -->
-  <div class="left-panel">
-    <div class="camera-frame-main" id="main-camera" data-type="inspection">
-      <div class="camera-label" id="main-label">Inspection Camera</div>
-      <iframe src="http://192.168.1.2:8889/webrtc/camB" id="main-iframe" class="rotate-0"></iframe>
-    </div>
-
-    <div class="camera-frame-pip" id="pip-camera" data-type="driving">
-      <div class="camera-label" id="pip-label">Driving Camera</div>
-      <iframe src="http://192.168.1.2:8889/webrtc/camA" id="pip-iframe" class="rotate-0"></iframe>
-      <div id="arrow-overlay"></div>
-    </div>
-  </div>
-
-  <!-- ========== RIGHT PANEL (Tabs) ========== -->
-  <div class="right-panel">
-    <!-- ---- Top‑Level Tabs ---- -->
-    <div class="top-tab-buttons">
-      <button class="top-tab-button active" onclick="showTopTab('status')">Status</button>
-      <button class="top-tab-button" onclick="showTopTab('controls')">Controls</button>
-    </div>
-
-    <!-- ---- STATUS TAB ---- -->
-    <div id="status" class="top-tab-content active">
-      <div class="imu-log" id="imu-log">
-        <strong>IMU Log</strong>
-        <div id="imu-entry">Waiting for data...</div>
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <img src="86fa564b-cb9d-4137-98f3-51caed427677.jfif" alt="DOOM_SEEK Logo">
       </div>
-
-      <div class="imu-log" id="input-log">
-        <strong>Controller Inputs</strong>
-        <div id="input-entry">Waiting for inputs...</div>
+      <div class="logo-text">
+        <h1>DOOM_SEEK</h1>
+        <span>Transformer Inspection System</span>
       </div>
     </div>
-
-    <!-- ---- CONTROLS TAB ---- -->
-    <div id="controls" class="top-tab-content">
-      <!-- Secondary tab buttons for control categories -->
-      <div class="tab-buttons">
-        <button class="tab-button active" onclick="showTab('guide')">Controller Guide</button>
-        <button class="tab-button" onclick="showTab('keyboard')">Keyboard Controls</button>
-        <button class="tab-button" onclick="showTab('camera')">Camera Controls</button>
+    <div class="header-controls">
+      <div class="connection-status">
+        <div class="status-dot"></div>
+        <span>Robot Connected</span>
       </div>
-
-      <!-- Controller Guide -->
-      <div id="guide" class="tab-content active">
-        <div class="control">Left Analog = Turn</div>
-        <div class="control">R2 = Forward</div>
-        <div class="control">L2 = Reverse</div>
-        <div class="control">D‑Pad = Speed Change</div>
-        <div class="control">A = LED Control</div>
-        <div class="control">B = Take Picture</div>
-      </div>
-
-      <!-- Keyboard Controls -->
-      <div id="keyboard" class="tab-content">
-        <div class="control">W = Forward</div>
-        <div class="control">S = Reverse</div>
-        <div class="control">A = Left Turn</div>
-        <div class="control">D = Right Turn</div>
-      </div>
-
-      <!-- Camera Controls -->
-      <div id="camera" class="tab-content">
-        <div class="camera-control" onclick="rotateCameras(0)">Reset Rotation</div>
-        <div class="camera-control" onclick="rotateCameras(90)">Rotate Left 90°</div>
-        <div class="camera-control" onclick="rotateCameras(270)">Rotate Right 90°</div>
-        <div class="camera-control" onclick="rotateCameras(180)">Rotate 180°</div>
-      </div>
+      <button class="emergency-stop" onclick="emergencyStop()">⚠ EMERGENCY STOP</button>
     </div>
   </div>
 
-  <!-- ========== SCRIPTS ========== -->
+  <!-- Main Container -->
+  <div class="main-container">
+    <!-- Left Panel - Cameras -->
+    <div class="left-panel">
+      <div class="camera-container main-camera">
+        <div class="camera-header">
+          <div class="camera-title">
+            <div class="camera-indicator"></div>
+            <span id="main-cam-label">Inspection Camera</span>
+          </div>
+          <div class="camera-controls">
+            <button class="camera-btn" onclick="startRecording('main')">Record</button>
+            <button class="camera-btn" onclick="takeSnapshot('main')">📸</button>
+            <button class="camera-btn" onclick="swapCameras()">⇄</button>
+          </div>
+        </div>
+        <div class="camera-view" id="main-camera-view">
+          <iframe src="http://192.168.1.2:8889/webrtc/camB" id="main-iframe"></iframe>
+          <div class="recording-indicator" id="main-recording">
+            <div class="rec-dot"></div>
+            <span>REC</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="camera-container secondary-camera">
+        <div class="camera-header">
+          <div class="camera-title">
+            <div class="camera-indicator"></div>
+            <span id="secondary-cam-label">Driving Camera</span>
+          </div>
+          <div class="camera-controls">
+            <button class="camera-btn" onclick="takeSnapshot('secondary')">📸</button>
+          </div>
+        </div>
+        <div class="camera-view" id="secondary-camera-view">
+          <iframe src="http://192.168.1.2:8889/webrtc/camA" id="secondary-iframe"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Middle Panel - Status -->
+    <div class="middle-panel">
+      <div class="status-card">
+        <div class="status-header">
+          <div class="status-icon">⏱</div>
+          <span>Mission Status</span>
+        </div>
+        <div class="mission-timer">
+          <span>Elapsed Time</span>
+          <span class="timer-display" id="timer">00:00:00</span>
+        </div>
+      </div>
+
+
+
+      <div class="status-card">
+        <div class="status-header">
+          <div class="status-icon">🎯</div>
+          <span>IMU Data</span>
+        </div>
+        <div class="sensor-grid">
+          <div class="sensor-item">
+            <div class="sensor-label">Pitch</div>
+            <div class="sensor-value" id="pitch">0.0°</div>
+          </div>
+          <div class="sensor-item">
+            <div class="sensor-label">Roll</div>
+            <div class="sensor-value" id="roll">0.0°</div>
+          </div>
+          <div class="sensor-item">
+            <div class="sensor-label">Yaw</div>
+            <div class="sensor-value" id="yaw">0.0°</div>
+          </div>
+          <div class="sensor-item">
+            <div class="sensor-label">Surface</div>
+            <div class="sensor-value" id="surface">Wall</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Temporary containers for moved logs during recordings view -->
+      <div class="temp-logs">
+        <div class="system-log">
+          <div class="log-box" id="temp-input-log-box">
+            <strong>Controller Inputs</strong>
+            <div id="temp-input-entry">Waiting for inputs...</div>
+          </div>
+        </div>
+
+        <div class="system-log">
+          <div class="log-box" id="temp-system-log-box">
+            <strong>System Status</strong>
+            <div id="temp-system-entry">System ready - DOOMSEEK online</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Controls -->
+    <div class="right-panel">
+      <div class="control-section">
+        <div class="control-tabs">
+          <button class="tab-btn active" onclick="showTab('movement')">Movement</button>
+          <button class="tab-btn" onclick="showTab('camera')">Camera</button>
+          <button class="tab-btn" onclick="showTab('recordings')">Recordings</button>
+        </div>
+
+        <div id="movement" class="tab-content active">
+          <div class="control-grid">
+            <div></div>
+            <button class="control-btn" onclick="move('forward')">
+              <span class="control-icon">↑</span>
+              <span>Forward</span>
+            </button>
+            <div></div>
+            <button class="control-btn" onclick="move('left')">
+              <span class="control-icon">←</span>
+              <span>Left</span>
+            </button>
+            <button class="control-btn" onclick="move('stop')">
+              <span class="control-icon">⬜</span>
+              <span>Stop</span>
+            </button>
+            <button class="control-btn" onclick="move('right')">
+              <span class="control-icon">→</span>
+              <span>Right</span>
+            </button>
+            <div></div>
+            <button class="control-btn" onclick="move('reverse')">
+              <span class="control-icon">↓</span>
+              <span>Reverse</span>
+            </button>
+            <div></div>
+          </div>
+          <div class="speed-control">
+            <div class="speed-display">
+              <span>Speed Control</span>
+              <span id="speed-value">50%</span>
+            </div>
+            <input type="range" class="speed-slider" id="speed-slider" min="0" max="100" value="50" oninput="updateSpeed(this.value)">
+          </div>
+        </div>
+
+        <div id="camera" class="tab-content" style="display: none;">
+          <div class="control-grid">
+            <button class="control-btn" onclick="zoomCamera('in')">
+              <span class="control-icon">🔍+</span>
+              <span>Zoom In</span>
+            </button>
+            <button class="control-btn" onclick="zoomCamera('out')">
+              <span class="control-icon">🔍-</span>
+              <span>Zoom Out</span>
+            </button>
+            <button class="control-btn" onclick="rotateCamera(0)">
+              <span class="control-icon">⟲</span>
+              <span>Reset</span>
+            </button>
+            <button class="control-btn" onclick="rotateCamera(90)">
+              <span class="control-icon">↶</span>
+              <span>90° Left</span>
+            </button>
+            <button class="control-btn" onclick="rotateCamera(270)">
+              <span class="control-icon">↷</span>
+              <span>90° Right</span>
+            </button>
+            <button class="control-btn" onclick="rotateCamera(180)">
+              <span class="control-icon">⟳</span>
+              <span>180°</span>
+            </button>
+            <button class="control-btn" onclick="toggleNightVision()">
+              <span class="control-icon">👁</span>
+              <span>Night</span>
+            </button>
+            <button class="control-btn" onclick="toggleLED()">
+              <span class="control-icon">💡</span>
+              <span>LED</span>
+            </button>
+            <button class="control-btn" onclick="toggleMagnet()">
+              <span class="control-icon">🧲</span>
+              <span>Magnet</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="recordings" class="tab-content" style="display: none;">
+          <div class="recordings-header" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <button class="control-btn" onclick="refreshRecordings()" style="flex: 1; margin-right: 5px;">
+              <span class="control-icon">🔄</span>
+              <span>Refresh</span>
+            </button>
+            <button class="control-btn" onclick="cleanupRecordings()" style="flex: 1; margin-left: 5px;">
+              <span class="control-icon">🗑️</span>
+              <span>Cleanup</span>
+            </button>
+          </div>
+          <div id="recordings-list" style="max-height: 300px; overflow-y: auto;">
+            <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
+              Loading recordings...
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="system-log">
+        <div class="log-box" id="input-log-box">
+          <strong>Controller Inputs</strong>
+          <div id="input-entry">Waiting for inputs...</div>
+        </div>
+      </div>
+
+      <div class="system-log">
+        <div class="log-box" id="system-log-box">
+          <strong>System Status</strong>
+          <div id="system-entry">System ready - DOOMSEEK online</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    /* ---------- Camera Rotation ---------- */
-    const mainIframe = document.getElementById('main-iframe');
-    const pipIframe  = document.getElementById('pip-iframe');
-
-    function rotateCameras(deg) {
-      const classes = ['rotate-0', 'rotate-90', 'rotate-180', 'rotate-270'];
-      mainIframe.classList.remove(...classes);
-      pipIframe.classList.remove(...classes);
-
-      switch (deg) {
-        case 90:
-          mainIframe.classList.add('rotate-90');
-          pipIframe.classList.add('rotate-90');
-          break;
-        case 270:
-          mainIframe.classList.add('rotate-270');
-          pipIframe.classList.add('rotate-270');
-          break;
-        case 180:
-          mainIframe.classList.add('rotate-180');
-          pipIframe.classList.add('rotate-180');
-          break;
-        default:
-          mainIframe.classList.add('rotate-0');
-          pipIframe.classList.add('rotate-0');
-      }
+    // Timer functionality
+    let startTime = Date.now();
+    function updateTimer() {
+      const elapsed = Date.now() - startTime;
+      const hours = Math.floor(elapsed / 3600000).toString().padStart(2, '0');
+      const minutes = Math.floor((elapsed % 3600000) / 60000).toString().padStart(2, '0');
+      const seconds = Math.floor((elapsed % 60000) / 1000).toString().padStart(2, '0');
+      document.getElementById('timer').textContent = `${hours}:${minutes}:${seconds}`;
     }
+    setInterval(updateTimer, 1000);
 
-    /* ---------- Secondary (Controls) Tab Switching ---------- */
-    function showTab(tabId) {
-      const buttons = document.querySelectorAll('.tab-button');
-      const tabs    = document.querySelectorAll('.tab-content');
+    // Tab switching
+    function showTab(tabName) {
+      const tabs = document.querySelectorAll('.tab-content');
+      const buttons = document.querySelectorAll('.tab-btn');
+      tabs.forEach(tab => tab.style.display = 'none');
       buttons.forEach(btn => btn.classList.remove('active'));
-      tabs.forEach(tab  => tab.classList.remove('active'));
 
-      document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add('active');
-      document.getElementById(tabId).classList.add('active');
-    }
+      document.getElementById(tabName).style.display = 'block';
+      event.target.classList.add('active');
 
-    /* ---------- Top‑Level Tab Switching ---------- */
-    function showTopTab(tabId) {
-      const topButtons = document.querySelectorAll('.top-tab-button');
-      const topTabs    = document.querySelectorAll('.top-tab-content');
-      topButtons.forEach(btn => btn.classList.remove('active'));
-      topTabs.forEach(tab => tab.classList.remove('active'));
+      // Apply layout changes for recordings tab
+      const mainContainer = document.querySelector('.main-container');
+      const bodyElement = document.body;
 
-      document.querySelector(`.top-tab-button[onclick="showTopTab('${tabId}')"]`).classList.add('active');
-      document.getElementById(tabId).classList.add('active');
-    }
+      if (tabName === 'recordings') {
+        mainContainer.classList.add('recordings-active');
+        bodyElement.classList.add('recordings-active');
 
-    /* ---------- Data Fetching ---------- */
-    async function fetchInput() {
-      try {
-        const res  = await fetch('http://192.168.1.2:8000/input');
-        const data = await res.json();
-        document.getElementById('input-entry').textContent =
-          `> [${data.timestamp}] Action: ${data.action} | M1: ${data.motor1_speed} | M2: ${data.motor2_speed}`;
-      } catch (err) {
-        console.error('Input fetch error:', err);
+        // Move log content to middle panel
+        moveLogsToMiddle();
+
+        refreshRecordings();
+        updateSystemStatus('Recordings view active - logs moved to middle panel');
+      } else {
+        mainContainer.classList.remove('recordings-active');
+        bodyElement.classList.remove('recordings-active');
+
+        // Move log content back to right panel
+        moveLogsToRight();
       }
     }
 
-    async function fetchIMU() {
+    // Camera controls
+
+    let recordingState = {};
+    let mediaRecorders = {};
+    let recordedChunks = {};
+    
+    // Create hidden video elements for capturing streams
+    function initHiddenVideos() {
+      if (!document.getElementById('hidden-video-container')) {
+        const container = document.createElement('div');
+        container.id = 'hidden-video-container';
+        container.style.display = 'none';
+        
+        const mainVideo = document.createElement('video');
+        mainVideo.id = 'hidden-main-video';
+        mainVideo.autoplay = true;
+        mainVideo.muted = true;
+        
+        const secondaryVideo = document.createElement('video');
+        secondaryVideo.id = 'hidden-secondary-video';
+        secondaryVideo.autoplay = true;
+        secondaryVideo.muted = true;
+        
+        container.appendChild(mainVideo);
+        container.appendChild(secondaryVideo);
+        document.body.appendChild(container);
+        
+        // Load streams into hidden videos
+        loadHiddenStream('main');
+        loadHiddenStream('secondary');
+      }
+    }
+    
+    async function loadHiddenStream(camera) {
+      const iframe = document.getElementById(`${camera === 'main' ? 'main' : 'secondary'}-iframe`);
+      const video = document.getElementById(`hidden-${camera}-video`);
+      
+      // Try to load the stream URL directly into a video element
+      const streamUrl = iframe.src.replace('/webrtc/', '/stream/'); // Adjust based on your stream format
+      
       try {
-        const imuRes  = await fetch('/imu');
-        const imuData = await imuRes.json();
-        document.getElementById('imu-entry').innerHTML =
-          `> [${imuData.timestamp}] Facing: ${imuData.facing} | Surface: ${imuData.surface}`;
+        // For HLS streams
+        if (streamUrl.includes('.m3u8') || window.Hls) {
+          const hls = new Hls();
+          hls.loadSource(streamUrl);
+          hls.attachMedia(video);
+        } else {
+          // For direct streams or MJPEG
+          video.src = iframe.src;
+        }
       } catch (err) {
-        console.error('IMU fetch error:', err);
+        console.log(`Could not load hidden stream for ${camera}:`, err);
+      }
+    }
+    
+    function startRecording(camera) {
+      const indicator = document.getElementById(`${camera}-recording`);
+      const isRecording = indicator.classList.contains('active');
+      
+      if (!isRecording) {
+        // Start recording
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+        const filename = `DOOM_SEEK_recording_${camera}_${timestamp}.webm`;
+        
+        // Try automatic capture first, fallback to proxy method
+        startAutoRecording(camera, filename, indicator);
+      } else {
+        // Stop recording
+        stopAutoRecording(camera);
       }
     }
 
-    setInterval(() => {
-      fetchIMU();
-      fetchInput();
-    }, 200);
+    async function startAutoRecording(camera, filename, indicator) {
+      try {
+        // First, try to capture from hidden video element
+        let video = document.getElementById(`hidden-${camera}-video`);
+        let stream = null;
+        
+        if (video && video.captureStream) {
+          stream = video.captureStream();
+        } else {
+          // Fallback: Create a proxy capture using server-side recording
+          const response = await fetch('http://192.168.1.2:8000/proxy-record', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              camera: camera === 'main' ? 'camB' : 'camA',
+              action: 'start'
+            })
+          });
+          
+          if (response.ok) {
+            // Mark as recording via proxy
+            recordingState[camera] = { filename, proxy: true };
+            indicator.classList.add('active');
+            updateSystemStatus(`Recording started: ${filename}`);
+            return;
+          }
+          
+          throw new Error('Proxy recording failed');
+        }
+        
+        // Setup MediaRecorder for local stream
+        const mediaRecorder = new MediaRecorder(stream, {
+          mimeType: 'video/webm;codecs=vp8'
+        });
+        
+        recordedChunks[camera] = [];
+        
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            recordedChunks[camera].push(event.data);
+          }
+        };
+        
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks[camera], { type: 'video/webm' });
+          downloadBlob(blob, filename);
+          
+          // Clean up
+          delete recordedChunks[camera];
+          delete recordingState[camera];
+          delete mediaRecorders[camera];
 
-    /* ---------- Camera Swap ---------- */
-    const mainCamera = document.getElementById('main-camera');
-    const pipCamera  = document.getElementById('pip-camera');
-    const mainLabel  = document.getElementById('main-label');
-    const pipLabel   = document.getElementById('pip-label');
+          updateSystemStatus(`Recording saved: ${filename}`);
+        };
+        
+        // Start recording
+        mediaRecorder.start(1000);
+        mediaRecorders[camera] = mediaRecorder;
+        recordingState[camera] = { filename, proxy: false };
+        
+        // Update UI
+        indicator.classList.add('active');
+        updateSystemStatus(`Recording started: ${filename}`);
+        
+      } catch (err) {
+        // Final fallback: Use automated screen capture
+        updateSystemStatus(`Using screen capture method`);
+        startFallbackRecording(camera, filename, indicator);
+      }
+    }
+    
+    async function startFallbackRecording(camera, filename, indicator) {
+      try {
+        // Use Picture-in-Picture API to isolate the video
+        const iframe = document.getElementById(`${camera === 'main' ? 'main' : 'secondary'}-iframe`);
+        
+        // Request PiP mode
+        if (document.pictureInPictureEnabled) {
+          const video = document.createElement('video');
+          video.src = iframe.src;
+          video.muted = true;
+          await video.requestPictureInPicture();
+          
+          const stream = video.captureStream();
+          const mediaRecorder = new MediaRecorder(stream);
+          
+          recordedChunks[camera] = [];
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) recordedChunks[camera].push(e.data);
+          };
+          
+          mediaRecorder.onstop = () => {
+            document.exitPictureInPicture();
+            const blob = new Blob(recordedChunks[camera], { type: 'video/webm' });
+            downloadBlob(blob, filename);
+            delete recordedChunks[camera];
+            delete mediaRecorders[camera];
+          };
+          
+          mediaRecorder.start(1000);
+          mediaRecorders[camera] = mediaRecorder;
+          indicator.classList.add('active');
+          updateSystemStatus(`Recording via PiP: ${filename}`);
+        }
+      } catch (err) {
+        updateSystemStatus(`Use Windows Game Bar (Win+G) to record`);
+      }
+    }
+    
+    async function stopAutoRecording(camera) {
+      const indicator = document.getElementById(`${camera}-recording`);
+      
+      if (recordingState[camera]?.proxy) {
+        // Stop proxy recording
+        const response = await fetch('http://192.168.1.2:8000/proxy-record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            camera: camera === 'main' ? 'camB' : 'camA',
+            action: 'stop'
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Download the file from server
+          if (data.url) {
+            window.open(data.url, '_blank');
+          }
+        }
+      } else if (mediaRecorders[camera]) {
+        mediaRecorders[camera].stop();
+      }
+      
+      indicator.classList.remove('active');
+      updateSystemStatus(`Recording stopped`);
+    }
 
-    mainCamera.addEventListener('click', swapCameras);
-    pipCamera.addEventListener('click',  swapCameras);
+    async function takeSnapshot(camera) {
+      try {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+        const filename = `DOOM_SEEK_snapshot_${camera}_${timestamp}.png`;
+        
+        // Method 1: Try hidden video element
+        let video = document.getElementById(`hidden-${camera}-video`);
+        
+        if (!video || !video.videoWidth) {
+          // Method 2: Try to extract from iframe using proxy
+          const response = await fetch('http://192.168.1.2:8000/proxy-snapshot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              camera: camera === 'main' ? 'camB' : 'camA'
+            })
+          });
+          
+          if (response.ok) {
+            const blob = await response.blob();
+            downloadBlob(blob, filename);
+            updateSystemStatus(`Snapshot saved: ${filename}`);
+            flashCamera(camera);
+            return;
+          }
+        }
+        
+        // Method 3: Use canvas to draw video frame
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (video && video.videoWidth) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0);
+        } else {
+          // Fallback: Create screenshot instruction
+          takeManualSnapshot(camera);
+          return;
+        }
+        
+        // Convert to blob and download
+        canvas.toBlob((blob) => {
+          downloadBlob(blob, filename);
+          updateSystemStatus(`Snapshot saved: ${filename}`);
+          flashCamera(camera);
+        }, 'image/png');
+        
+      } catch (err) {
+        takeManualSnapshot(camera);
+      }
+    }
+    
+    function takeManualSnapshot(camera) {
+      // Create a temporary canvas with instructions
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 1920;
+      canvas.height = 1080;
+      
+      // Draw placeholder with timestamp
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.fillStyle = '#00d4ff';
+      ctx.font = 'bold 48px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('DOOM_SEEK Camera Snapshot', canvas.width/2, 100);
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '24px Arial';
+      ctx.fillText(`Camera: ${camera === 'main' ? 'Inspection' : 'Driving'}`, canvas.width/2, 200);
+      ctx.fillText(`Time: ${new Date().toLocaleString()}`, canvas.width/2, 250);
+      
+      ctx.fillStyle = '#ffaa00';
+      ctx.fillText('Stream capture unavailable - Using placeholder', canvas.width/2, 350);
+      
+      // Add iframe screenshot as image if possible
+      const iframe = document.getElementById(`${camera === 'main' ? 'main' : 'secondary'}-iframe`);
+      ctx.fillStyle = '#888';
+      ctx.font = '16px monospace';
+      ctx.fillText(`Stream URL: ${iframe.src}`, canvas.width/2, 450);
+      
+      // Download the placeholder
+      canvas.toBlob((blob) => {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+        const filename = `DOOM_SEEK_snapshot_${camera}_${timestamp}_placeholder.png`;
+        downloadBlob(blob, filename);
+        updateSystemStatus(`Placeholder saved. Use Win+Shift+S for actual frame`);
+      }, 'image/png');
+    }
+    
+    function flashCamera(camera) {
+      const view = document.getElementById(`${camera}-camera-view`);
+      view.style.animation = 'flash 0.3s';
+      setTimeout(() => view.style.animation = '', 300);
+    }
+    
+    // Initialize hidden videos on page load
+    window.addEventListener('load', initHiddenVideos);
+    
+    // Helper function to download blob
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
 
     function swapCameras() {
-      // Swap iframe sources
-      [mainIframe.src, pipIframe.src] = [pipIframe.src, mainIframe.src];
+      const mainIframe = document.getElementById('main-iframe');
+      const secondaryIframe = document.getElementById('secondary-iframe');
+      const mainLabel = document.getElementById('main-cam-label');
+      const secondaryLabel = document.getElementById('secondary-cam-label');
+      
+      [mainIframe.src, secondaryIframe.src] = [secondaryIframe.src, mainIframe.src];
+      [mainLabel.textContent, secondaryLabel.textContent] = [secondaryLabel.textContent, mainLabel.textContent];
 
-      // Swap labels
-      [mainLabel.textContent, pipLabel.textContent] = [pipLabel.textContent, mainLabel.textContent];
+      updateSystemStatus('Camera feeds swapped');
+    }
 
-      // Swap data‑type attribute
-      const tempType = mainCamera.getAttribute('data-type');
-      mainCamera.setAttribute('data-type', pipCamera.getAttribute('data-type'));
-      pipCamera.setAttribute('data-type', tempType);
+    // Movement controls
+    let currentSpeed = 50;
+    let currentMovement = null;
+    let movementInterval = null;
 
-      // Move arrow overlay to the driving camera
-      const arrow = document.getElementById('arrow-overlay');
-      if (mainCamera.getAttribute('data-type') === 'driving') {
-        mainCamera.appendChild(arrow);
-      } else {
-        pipCamera.appendChild(arrow);
+    function move(direction) {
+      // Stop any current movement
+      if (movementInterval) {
+        clearInterval(movementInterval);
+        movementInterval = null;
+      }
+
+      // If same direction clicked, stop movement
+      if (currentMovement === direction) {
+        stopMovement();
+        return;
+      }
+
+      currentMovement = direction;
+      updateSystemStatus(`Moving ${direction}`);
+
+      // Send initial command
+      sendMovementCommand(direction);
+
+      // Continue sending commands every 100ms for smooth movement
+      movementInterval = setInterval(() => {
+        sendMovementCommand(direction);
+      }, 100);
+
+      // Auto-stop after 5 seconds for safety
+      setTimeout(() => {
+        if (currentMovement === direction) {
+          stopMovement();
+        }
+      }, 5000);
+    }
+
+    function sendMovementCommand(direction) {
+      let motor1 = 0, motor2 = 0, action = direction;
+
+      // Map speed percentage to motor speed (0-100% -> 0-80)
+      const baseSpeed = Math.round((currentSpeed / 100) * 80);
+
+      switch(direction) {
+        case 'forward':
+          motor1 = motor2 = baseSpeed;
+          break;
+        case 'reverse':
+          motor1 = motor2 = baseSpeed;
+          action = 'reverse';
+          break;
+        case 'left':
+          action = 'Turning Left';
+          motor1 = motor2 = baseSpeed * 0.7;
+          break;
+        case 'right':
+          action = 'Turning Right';
+          motor1 = motor2 = baseSpeed * 0.7;
+          break;
+        case 'stop':
+          motor1 = motor2 = 0;
+          action = 'stop';
+          break;
+      }
+
+      fetch(`http://192.168.1.2:8000/control`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          motor1_speed: motor1,
+          motor2_speed: motor2,
+          action: action
+        })
+      }).catch(err => console.error(err));
+    }
+
+    function stopMovement() {
+      if (movementInterval) {
+        clearInterval(movementInterval);
+        movementInterval = null;
+      }
+      currentMovement = null;
+      sendMovementCommand('stop');
+      updateSystemStatus('Movement stopped');
+    }
+
+    function updateSpeed(value) {
+      currentSpeed = parseInt(value);
+      document.getElementById('speed-value').textContent = `${value}%`;
+      updateSystemStatus(`Speed set to ${value}%`);
+    }
+
+    // Camera controls
+    function zoomCamera(direction) {
+      const action = direction === 'in' ? 'Zoom In' : 'Zoom Out';
+      updateSystemStatus(`Camera ${action.toLowerCase()}`);
+
+      fetch(`http://192.168.1.2:8000/control`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          motor1_speed: 0,
+          motor2_speed: 0,
+          action: action
+        })
+      }).catch(err => console.error(err));
+    }
+
+    function rotateCamera(degrees) {
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach(iframe => {
+        iframe.style.transform = `rotate(${degrees}deg)`;
+      });
+      updateSystemStatus(`Camera rotated ${degrees}°`);
+    }
+
+    // Tool functions
+    function emergencyStop() {
+      updateSystemStatus('EMERGENCY STOP ACTIVATED');
+      stopMovement();
+    }
+
+    function toggleNightVision() {
+      updateSystemStatus('Night vision toggled');
+      // Could add actual night vision control here
+    }
+
+    function toggleLED() {
+      updateSystemStatus('LED state toggled');
+
+      fetch(`http://192.168.1.2:8000/control`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          motor1_speed: 0,
+          motor2_speed: 0,
+          action: 'Led On'  // This will toggle between Led On/Led Off
+        })
+      }).catch(err => console.error(err));
+    }
+
+    function toggleMagnet() {
+      updateSystemStatus('Magnet toggled');
+      // Add magnet control implementation
+    }
+
+    // Log panel movement functions
+    function moveLogsToMiddle() {
+      // Copy current content from right panel to middle panel
+      const inputContent = document.getElementById('input-entry').textContent;
+      const systemContent = document.getElementById('system-entry').textContent;
+
+      document.getElementById('temp-input-entry').textContent = inputContent;
+      document.getElementById('temp-system-entry').textContent = systemContent;
+    }
+
+    function moveLogsToRight() {
+      // Copy current content from middle panel back to right panel
+      const inputContent = document.getElementById('temp-input-entry').textContent;
+      const systemContent = document.getElementById('temp-system-entry').textContent;
+
+      document.getElementById('input-entry').textContent = inputContent;
+      document.getElementById('system-entry').textContent = systemContent;
+    }
+
+    // Recordings management
+    async function refreshRecordings() {
+      updateSystemStatus('Refreshing recordings list...');
+      try {
+        const response = await fetch('http://192.168.1.2:8000/recordings');
+        const data = await response.json();
+        displayRecordings(data.recordings);
+        updateSystemStatus(`Found ${data.recordings.length} recordings`);
+      } catch (err) {
+        console.error('Error fetching recordings:', err);
+        updateSystemStatus('Error fetching recordings');
+        document.getElementById('recordings-list').innerHTML =
+          '<div style="text-align: center; color: var(--danger-color); padding: 20px;">Error loading recordings</div>';
       }
     }
+
+    function displayRecordings(recordings) {
+      const recordingsList = document.getElementById('recordings-list');
+
+      if (recordings.length === 0) {
+        recordingsList.innerHTML =
+          '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">No recordings found</div>';
+        return;
+      }
+
+      recordingsList.innerHTML = recordings.map(recording => `
+        <div class="recording-item">
+          <div class="recording-name">${recording.filename}</div>
+          <div class="recording-details">
+            ${recording.size_mb} MB • ${new Date(recording.modified).toLocaleString()}
+          </div>
+          <div class="recording-actions">
+            <button class="recording-btn" onclick="downloadRecording('${recording.path}')">
+              📥 Download
+            </button>
+            <button class="recording-btn delete" onclick="deleteRecording('${recording.path}')">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function downloadRecording(path) {
+      try {
+        updateSystemStatus(`Downloading ${path}...`);
+        const response = await fetch(`http://192.168.1.2:8000/recordings/download/${path}`);
+
+        if (!response.ok) {
+          throw new Error('Download failed');
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = path.split('/').pop();
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        updateSystemStatus(`Downloaded ${path}`);
+      } catch (err) {
+        console.error('Download error:', err);
+        updateSystemStatus(`Error downloading ${path}`);
+      }
+    }
+
+    async function deleteRecording(path) {
+      if (!confirm(`Are you sure you want to delete ${path}?`)) {
+        return;
+      }
+
+      try {
+        updateSystemStatus(`Deleting ${path}...`);
+        const response = await fetch(`http://192.168.1.2:8000/recordings/${path}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          throw new Error('Delete failed');
+        }
+
+        updateSystemStatus(`Deleted ${path}`);
+        refreshRecordings(); // Refresh the list
+      } catch (err) {
+        console.error('Delete error:', err);
+        updateSystemStatus(`Error deleting ${path}`);
+      }
+    }
+
+    async function cleanupRecordings() {
+      if (!confirm('This will delete all recordings older than 7 days. Continue?')) {
+        return;
+      }
+
+      try {
+        updateSystemStatus('Cleaning up old recordings...');
+        const response = await fetch('http://192.168.1.2:8000/recordings/cleanup');
+        const data = await response.json();
+
+        updateSystemStatus(`Cleanup completed: ${data.deleted} files deleted`);
+        refreshRecordings(); // Refresh the list
+      } catch (err) {
+        console.error('Cleanup error:', err);
+        updateSystemStatus('Error during cleanup');
+      }
+    }
+
+
+    // System status logging
+    function updateSystemStatus(message, type = '') {
+      const time = new Date().toTimeString().split(' ')[0];
+      const content = `> [${time}] ${message}`;
+
+      document.getElementById('system-entry').textContent = content;
+
+      // Also update the temporary location if recordings tab is active
+      if (document.body.classList.contains('recordings-active')) {
+        document.getElementById('temp-system-entry').textContent = content;
+      }
+    }
+
+    // Flash animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes flash {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Fetch IMU data
+    async function fetchIMUData() {
+      try {
+        const response = await fetch('http://192.168.1.2:8000/imu');
+        const data = await response.json();
+        if (data && data.timestamp) {
+          // Calculate pitch, roll, yaw from accelerometer data if available
+          let pitch = 0, roll = 0, yaw = 0;
+          if (data.accel && data.accel.length >= 3) {
+            // Calculate pitch and roll from accelerometer data
+            const [ax, ay, az] = data.accel;
+            pitch = Math.atan2(ay, Math.sqrt(ax * ax + az * az)) * (180 / Math.PI);
+            roll = Math.atan2(-ax, az) * (180 / Math.PI);
+          }
+
+          // Convert facing direction to approximate yaw angle
+          if (data.facing) {
+            const directions = {
+              "North": 0, "NE": 45, "East": 90, "SE": 135,
+              "South": 180, "SW": 225, "West": 270, "NW": 315
+            };
+            yaw = directions[data.facing] || 0;
+          }
+
+          document.getElementById('pitch').textContent = `${pitch.toFixed(1)}°`;
+          document.getElementById('roll').textContent = `${roll.toFixed(1)}°`;
+          document.getElementById('yaw').textContent = `${yaw.toFixed(1)}°`;
+          document.getElementById('surface').textContent = data.surface || 'Wall';
+        }
+      } catch (err) {
+        console.error('IMU fetch error:', err);
+        document.getElementById('pitch').textContent = 'Connection error';
+        document.getElementById('roll').textContent = 'Connection error';
+        document.getElementById('yaw').textContent = 'Connection error';
+        document.getElementById('surface').textContent = 'Connection error';
+      }
+    }
+
+    // Fetch controller input data
+    async function fetchControllerData() {
+      try {
+        const response = await fetch('http://192.168.1.2:8000/input');
+        const data = await response.json();
+        // Display controller data in real-time log
+        if (data && (data.action || data.timestamp)) {
+          const timestamp = data.timestamp || new Date().toLocaleTimeString();
+          const action = data.action || 'idle';
+          const m1 = data.motor1_speed || 0;
+          const m2 = data.motor2_speed || 0;
+          const content = `> [${timestamp}] Action: ${action} | M1: ${m1} | M2: ${m2}`;
+
+          document.getElementById('input-entry').textContent = content;
+
+          // Also update the temporary location if recordings tab is active
+          if (document.body.classList.contains('recordings-active')) {
+            document.getElementById('temp-input-entry').textContent = content;
+          }
+        }
+      } catch (err) {
+        console.error('Controller fetch error:', err);
+        const errorContent = 'Controller connection error - retrying...';
+
+        document.getElementById('input-entry').textContent = errorContent;
+
+        // Also update the temporary location if recordings tab is active
+        if (document.body.classList.contains('recordings-active')) {
+          document.getElementById('temp-input-entry').textContent = errorContent;
+        }
+      }
+    }
+
+    function updateMotorDisplay(m1, m2, action) {
+      // Update visual indicators based on controller input
+      if (action && action !== 'idle') {
+        const timestamp = new Date().toTimeString().split(' ')[0];
+        // Only log significant actions to avoid spam
+        if (action !== lastAction) {
+          // This is handled by the real-time controller input log now
+          lastAction = action;
+        }
+      }
+    }
+
+    let lastAction = '';
+
+    // Update data periodically
+    setInterval(() => {
+      fetchIMUData();
+      fetchControllerData();
+    }, 200);
+
+    // Keyboard controls
+    let keyPressed = {};
+
+    document.addEventListener('keydown', (e) => {
+      // Prevent multiple triggers for held keys
+      if (keyPressed[e.key]) return;
+      keyPressed[e.key] = true;
+
+      switch(e.key.toLowerCase()) {
+        case 'arrowup':
+        case 'w':
+          move('forward');
+          break;
+        case 'arrowdown':
+        case 's':
+          move('reverse');
+          break;
+        case 'arrowleft':
+        case 'a':
+          move('left');
+          break;
+        case 'arrowright':
+        case 'd':
+          move('right');
+          break;
+        case ' ':
+          e.preventDefault(); // Prevent page scroll
+          stopMovement();
+          break;
+        case 'q':
+          zoomCamera('in');
+          break;
+        case 'e':
+          zoomCamera('out');
+          break;
+        case 'f':
+          toggleLED();
+          break;
+        case 'c':
+          takeSnapshot('main');
+          break;
+        case 'x':
+          swapCameras();
+          break;
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      keyPressed[e.key] = false;
+    });
+
+    // Initialize
+    updateSystemStatus('System ready - DOOMSEEK online');
   </script>
 </body>
 </html>
