@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -227,7 +227,6 @@
       border: none;
     }
 
-
     .recording-indicator {
       position: absolute;
       top: 20px;
@@ -311,83 +310,6 @@
       font-weight: 700;
       font-family: 'Courier New', monospace;
       color: var(--primary-color);
-    }
-
-    .wheel-status {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-
-    .wheel-card {
-      background: var(--bg-tertiary);
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      transition: all 0.3s;
-    }
-
-    .wheel-card.engaged {
-      border-color: var(--success-color);
-      box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
-    }
-
-    .wheel-label {
-      font-size: 12px;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
-    }
-
-    .wheel-value {
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .magnet-indicator {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      margin-left: 8px;
-    }
-
-    .magnet-active {
-      background: var(--success-color);
-    }
-
-    .magnet-inactive {
-      background: var(--text-secondary);
-    }
-
-    .gauge-container {
-      margin: 15px 0;
-    }
-
-    .gauge {
-      height: 120px;
-      background: var(--bg-tertiary);
-      border-radius: 8px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .gauge-fill {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
-      transition: height 0.5s ease;
-    }
-
-    .gauge-label {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-weight: 600;
-      font-size: 14px;
-      z-index: 1;
     }
 
     .sensor-grid {
@@ -585,13 +507,11 @@
       background: #ff5555;
     }
 
-    /* Layout adjustments for recordings tab */
     .recordings-active .right-panel {
       max-height: none;
       overflow-y: visible;
     }
 
-    /* Move system logs to middle panel when recordings tab is active */
     .recordings-active #input-log-box,
     .recordings-active #system-log-box {
       display: none;
@@ -601,7 +521,6 @@
       flex-direction: column;
     }
 
-    /* Create temporary containers in middle panel for moved logs */
     .middle-panel .temp-logs {
       display: none;
     }
@@ -639,6 +558,90 @@
       line-height: 1.4;
     }
 
+    /* Download Progress Modal */
+    #download-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      backdrop-filter: blur(5px);
+    }
+
+    .download-modal-content {
+      background: var(--bg-secondary);
+      border: 2px solid var(--primary-color);
+      border-radius: 16px;
+      padding: 30px;
+      min-width: 400px;
+      box-shadow: 0 10px 40px rgba(0, 212, 255, 0.4);
+    }
+
+    .download-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .download-icon {
+      font-size: 32px;
+    }
+
+    .progress-container {
+      position: relative;
+      width: 100%;
+      height: 30px;
+      background: var(--bg-tertiary);
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 15px;
+      border: 1px solid var(--border-color);
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      width: 0%;
+      transition: width 0.3s ease;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+    }
+
+    .progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-primary);
+      text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    }
+
+    .download-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-family: 'Courier New', monospace;
+    }
+
+    .download-stats span {
+      padding: 5px 10px;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
     /* Responsive */
     @media (max-width: 1400px) {
       .main-container {
@@ -650,9 +653,13 @@
         grid-template-columns: repeat(2, 1fr);
       }
 
-      /* Force scroll on smaller screens */
       .right-panel {
         max-height: calc(100vh - 140px);
+      }
+
+      .download-modal-content {
+        min-width: 300px;
+        padding: 20px;
       }
     }
 
@@ -680,8 +687,14 @@
         flex-direction: column;
         gap: 3px;
       }
+
+      .download-modal-content {
+        min-width: 250px;
+        padding: 15px;
+      }
     }
   </style>
+  <script src="https://unpkg.com/streamsaver@2.0.5/StreamSaver.min.js"></script>
 </head>
 <body>
   <!-- Header -->
@@ -721,7 +734,7 @@
           </div>
         </div>
         <div class="camera-view" id="main-camera-view">
-          <iframe src="http://192.168.1.2:8889/webrtc/camB" id="main-iframe"></iframe>
+          <iframe src="http://192.168.8.103:8889/webrtc/camB" id="main-iframe"></iframe>
           <div class="recording-indicator" id="main-recording">
             <div class="rec-dot"></div>
             <span>REC</span>
@@ -740,7 +753,7 @@
           </div>
         </div>
         <div class="camera-view" id="secondary-camera-view">
-          <iframe src="http://192.168.1.2:8889/webrtc/camA" id="secondary-iframe"></iframe>
+          <iframe src="http://192.168.8.103:8889/webrtc/camA" id="secondary-iframe"></iframe>
         </div>
       </div>
     </div>
@@ -757,8 +770,6 @@
           <span class="timer-display" id="timer">00:00:00</span>
         </div>
       </div>
-
-
 
       <div class="status-card">
         <div class="status-header">
@@ -947,35 +958,27 @@
       document.getElementById(tabName).style.display = 'block';
       event.target.classList.add('active');
 
-      // Apply layout changes for recordings tab
       const mainContainer = document.querySelector('.main-container');
       const bodyElement = document.body;
 
       if (tabName === 'recordings') {
         mainContainer.classList.add('recordings-active');
         bodyElement.classList.add('recordings-active');
-
-        // Move log content to middle panel
         moveLogsToMiddle();
-
         refreshRecordings();
         updateSystemStatus('Recordings view active - logs moved to middle panel');
       } else {
         mainContainer.classList.remove('recordings-active');
         bodyElement.classList.remove('recordings-active');
-
-        // Move log content back to right panel
         moveLogsToRight();
       }
     }
 
     // Camera controls
-
     let recordingState = {};
     let mediaRecorders = {};
     let recordedChunks = {};
     
-    // Create hidden video elements for capturing streams
     function initHiddenVideos() {
       if (!document.getElementById('hidden-video-container')) {
         const container = document.createElement('div');
@@ -996,7 +999,6 @@
         container.appendChild(secondaryVideo);
         document.body.appendChild(container);
         
-        // Load streams into hidden videos
         loadHiddenStream('main');
         loadHiddenStream('secondary');
       }
@@ -1006,17 +1008,14 @@
       const iframe = document.getElementById(`${camera === 'main' ? 'main' : 'secondary'}-iframe`);
       const video = document.getElementById(`hidden-${camera}-video`);
       
-      // Try to load the stream URL directly into a video element
-      const streamUrl = iframe.src.replace('/webrtc/', '/stream/'); // Adjust based on your stream format
+      const streamUrl = iframe.src.replace('/webrtc/', '/stream/');
       
       try {
-        // For HLS streams
         if (streamUrl.includes('.m3u8') || window.Hls) {
           const hls = new Hls();
           hls.loadSource(streamUrl);
           hls.attachMedia(video);
         } else {
-          // For direct streams or MJPEG
           video.src = iframe.src;
         }
       } catch (err) {
@@ -1029,29 +1028,23 @@
       const isRecording = indicator.classList.contains('active');
       
       if (!isRecording) {
-        // Start recording
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
         const filename = `DOOM_SEEK_recording_${camera}_${timestamp}.webm`;
-        
-        // Try automatic capture first, fallback to proxy method
         startAutoRecording(camera, filename, indicator);
       } else {
-        // Stop recording
         stopAutoRecording(camera);
       }
     }
 
     async function startAutoRecording(camera, filename, indicator) {
       try {
-        // First, try to capture from hidden video element
         let video = document.getElementById(`hidden-${camera}-video`);
         let stream = null;
         
         if (video && video.captureStream) {
           stream = video.captureStream();
         } else {
-          // Fallback: Create a proxy capture using server-side recording
-          const response = await fetch('http://192.168.1.2:8000/proxy-record', {
+          const response = await fetch('http://192.168.8.103:8000/proxy-record', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1061,7 +1054,6 @@
           });
           
           if (response.ok) {
-            // Mark as recording via proxy
             recordingState[camera] = { filename, proxy: true };
             indicator.classList.add('active');
             updateSystemStatus(`Recording started: ${filename}`);
@@ -1071,7 +1063,6 @@
           throw new Error('Proxy recording failed');
         }
         
-        // Setup MediaRecorder for local stream
         const mediaRecorder = new MediaRecorder(stream, {
           mimeType: 'video/webm;codecs=vp8'
         });
@@ -1088,7 +1079,6 @@
           const blob = new Blob(recordedChunks[camera], { type: 'video/webm' });
           downloadBlob(blob, filename);
           
-          // Clean up
           delete recordedChunks[camera];
           delete recordingState[camera];
           delete mediaRecorders[camera];
@@ -1096,17 +1086,14 @@
           updateSystemStatus(`Recording saved: ${filename}`);
         };
         
-        // Start recording
         mediaRecorder.start(1000);
         mediaRecorders[camera] = mediaRecorder;
         recordingState[camera] = { filename, proxy: false };
         
-        // Update UI
         indicator.classList.add('active');
         updateSystemStatus(`Recording started: ${filename}`);
         
       } catch (err) {
-        // Final fallback: Use automated screen capture
         updateSystemStatus(`Using screen capture method`);
         startFallbackRecording(camera, filename, indicator);
       }
@@ -1114,10 +1101,8 @@
     
     async function startFallbackRecording(camera, filename, indicator) {
       try {
-        // Use Picture-in-Picture API to isolate the video
         const iframe = document.getElementById(`${camera === 'main' ? 'main' : 'secondary'}-iframe`);
         
-        // Request PiP mode
         if (document.pictureInPictureEnabled) {
           const video = document.createElement('video');
           video.src = iframe.src;
@@ -1154,8 +1139,7 @@
       const indicator = document.getElementById(`${camera}-recording`);
       
       if (recordingState[camera]?.proxy) {
-        // Stop proxy recording
-        const response = await fetch('http://192.168.1.2:8000/proxy-record', {
+        const response = await fetch('http://192.168.8.103:8000/proxy-record', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1166,7 +1150,6 @@
         
         if (response.ok) {
           const data = await response.json();
-          // Download the file from server
           if (data.url) {
             window.open(data.url, '_blank');
           }
@@ -1184,12 +1167,10 @@
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
         const filename = `DOOM_SEEK_snapshot_${camera}_${timestamp}.png`;
         
-        // Method 1: Try hidden video element
         let video = document.getElementById(`hidden-${camera}-video`);
         
         if (!video || !video.videoWidth) {
-          // Method 2: Try to extract from iframe using proxy
-          const response = await fetch('http://192.168.1.2:8000/proxy-snapshot', {
+          const response = await fetch('http://192.168.8.103:8000/proxy-snapshot', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1206,7 +1187,6 @@
           }
         }
         
-        // Method 3: Use canvas to draw video frame
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
@@ -1215,12 +1195,10 @@
           canvas.height = video.videoHeight;
           ctx.drawImage(video, 0, 0);
         } else {
-          // Fallback: Create screenshot instruction
           takeManualSnapshot(camera);
           return;
         }
         
-        // Convert to blob and download
         canvas.toBlob((blob) => {
           downloadBlob(blob, filename);
           updateSystemStatus(`Snapshot saved: ${filename}`);
@@ -1233,13 +1211,11 @@
     }
     
     function takeManualSnapshot(camera) {
-      // Create a temporary canvas with instructions
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       canvas.width = 1920;
       canvas.height = 1080;
       
-      // Draw placeholder with timestamp
       ctx.fillStyle = '#1a1a1a';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
@@ -1256,13 +1232,11 @@
       ctx.fillStyle = '#ffaa00';
       ctx.fillText('Stream capture unavailable - Using placeholder', canvas.width/2, 350);
       
-      // Add iframe screenshot as image if possible
       const iframe = document.getElementById(`${camera === 'main' ? 'main' : 'secondary'}-iframe`);
       ctx.fillStyle = '#888';
       ctx.font = '16px monospace';
       ctx.fillText(`Stream URL: ${iframe.src}`, canvas.width/2, 450);
       
-      // Download the placeholder
       canvas.toBlob((blob) => {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
         const filename = `DOOM_SEEK_snapshot_${camera}_${timestamp}_placeholder.png`;
@@ -1277,10 +1251,8 @@
       setTimeout(() => view.style.animation = '', 300);
     }
     
-    // Initialize hidden videos on page load
     window.addEventListener('load', initHiddenVideos);
     
-    // Helper function to download blob
     function downloadBlob(blob, filename) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -1310,13 +1282,11 @@
     let movementInterval = null;
 
     function move(direction) {
-      // Stop any current movement
       if (movementInterval) {
         clearInterval(movementInterval);
         movementInterval = null;
       }
 
-      // If same direction clicked, stop movement
       if (currentMovement === direction) {
         stopMovement();
         return;
@@ -1325,15 +1295,12 @@
       currentMovement = direction;
       updateSystemStatus(`Moving ${direction}`);
 
-      // Send initial command
       sendMovementCommand(direction);
 
-      // Continue sending commands every 100ms for smooth movement
       movementInterval = setInterval(() => {
         sendMovementCommand(direction);
       }, 100);
 
-      // Auto-stop after 5 seconds for safety
       setTimeout(() => {
         if (currentMovement === direction) {
           stopMovement();
@@ -1344,7 +1311,6 @@
     function sendMovementCommand(direction) {
       let motor1 = 0, motor2 = 0, action = direction;
 
-      // Map speed percentage to motor speed (0-100% -> 0-80)
       const baseSpeed = Math.round((currentSpeed / 100) * 80);
 
       switch(direction) {
@@ -1369,7 +1335,7 @@
           break;
       }
 
-      fetch(`http://192.168.1.2:8000/control`, {
+      fetch(`http://192.168.8.103:8000/control`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1401,7 +1367,7 @@
       const action = direction === 'in' ? 'Zoom In' : 'Zoom Out';
       updateSystemStatus(`Camera ${action.toLowerCase()}`);
 
-      fetch(`http://192.168.1.2:8000/control`, {
+      fetch(`http://192.168.8.103:8000/control`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1428,31 +1394,28 @@
 
     function toggleNightVision() {
       updateSystemStatus('Night vision toggled');
-      // Could add actual night vision control here
     }
 
     function toggleLED() {
       updateSystemStatus('LED state toggled');
 
-      fetch(`http://192.168.1.2:8000/control`, {
+      fetch(`http://192.168.8.103:8000/control`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           motor1_speed: 0,
           motor2_speed: 0,
-          action: 'Led On'  // This will toggle between Led On/Led Off
+          action: 'Led On'
         })
       }).catch(err => console.error(err));
     }
 
     function toggleMagnet() {
       updateSystemStatus('Magnet toggled');
-      // Add magnet control implementation
     }
 
     // Log panel movement functions
     function moveLogsToMiddle() {
-      // Copy current content from right panel to middle panel
       const inputContent = document.getElementById('input-entry').textContent;
       const systemContent = document.getElementById('system-entry').textContent;
 
@@ -1461,7 +1424,6 @@
     }
 
     function moveLogsToRight() {
-      // Copy current content from middle panel back to right panel
       const inputContent = document.getElementById('temp-input-entry').textContent;
       const systemContent = document.getElementById('temp-system-entry').textContent;
 
@@ -1473,7 +1435,7 @@
     async function refreshRecordings() {
       updateSystemStatus('Refreshing recordings list...');
       try {
-        const response = await fetch('http://192.168.1.2:8000/recordings');
+        const response = await fetch('http://192.168.8.103:8000/recordings');
         const data = await response.json();
         displayRecordings(data.recordings);
         updateSystemStatus(`Found ${data.recordings.length} recordings`);
@@ -1512,29 +1474,173 @@
       `).join('');
     }
 
+    // Enhanced download function with progress bar
     async function downloadRecording(path) {
       try {
-        updateSystemStatus(`Downloading ${path}...`);
-        const response = await fetch(`http://192.168.1.2:8000/recordings/download/${path}`);
+        const filename = path.split('/').pop() || 'recording.bin';
+        
+        showDownloadProgress(filename);
+        
+        const url = `http://192.168.8.103:8000/recordings/download/${encodeURIComponent(path)}`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
 
-        if (!response.ok) {
-          throw new Error('Download failed');
+        const contentLength = Number(resp.headers.get('Content-Length')) || undefined;
+        const totalMB = contentLength ? (contentLength / (1024 * 1024)).toFixed(2) : '?';
+
+        if (window.streamSaver && resp.body) {
+          const fileStream = streamSaver.createWriteStream(filename, { size: contentLength });
+          const writer = fileStream.getWriter();
+          const reader = resp.body.getReader();
+          let received = 0;
+          let lastUpdate = Date.now();
+          let lastReceived = 0;
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            await writer.write(value);
+            received += (value.byteLength || value.length || 0);
+            
+            const now = Date.now();
+            if (now - lastUpdate > 100) {
+              const speed = ((received - lastReceived) / (now - lastUpdate)) * 1000;
+              updateDownloadProgress(received, contentLength, speed);
+              lastUpdate = now;
+              lastReceived = received;
+            }
+          }
+
+          await writer.close();
+          hideDownloadProgress();
+          updateSystemStatus(`Downloaded ${filename} (${totalMB} MB)`);
+          return;
         }
 
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = path.split('/').pop();
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        if ('showSaveFilePicker' in window && resp.body) {
+          const handle = await window.showSaveFilePicker({ suggestedName: filename });
+          const writable = await handle.createWritable();
+          const reader = resp.body.getReader();
+          let received = 0;
+          let lastUpdate = Date.now();
+          let lastReceived = 0;
 
-        updateSystemStatus(`Downloaded ${path}`);
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            await writable.write(value);
+            received += (value.byteLength || value.length || 0);
+            
+            const now = Date.now();
+            if (now - lastUpdate > 100) {
+              const speed = ((received - lastReceived) / (now - lastUpdate)) * 1000;
+              updateDownloadProgress(received, contentLength, speed);
+              lastUpdate = now;
+              lastReceived = received;
+            }
+          }
+
+          await writable.close();
+          hideDownloadProgress();
+          updateSystemStatus(`Downloaded ${filename} (${totalMB} MB)`);
+          return;
+        }
+
+        if (resp.body) {
+          const reader = resp.body.getReader();
+          const chunks = [];
+          let received = 0;
+          let lastUpdate = Date.now();
+          let lastReceived = 0;
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            received += value.length;
+            
+            const now = Date.now();
+            if (now - lastUpdate > 100) {
+              const speed = ((received - lastReceived) / (now - lastUpdate)) * 1000;
+              updateDownloadProgress(received, contentLength, speed);
+              lastUpdate = now;
+              lastReceived = received;
+            }
+          }
+
+          const blob = new Blob(chunks);
+          const urlObj = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = urlObj;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(urlObj);
+        } else {
+          const blob = await resp.blob();
+          const urlObj = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = urlObj;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(urlObj);
+        }
+
+        hideDownloadProgress();
+        updateSystemStatus(`Downloaded ${filename} (${totalMB} MB)`);
       } catch (err) {
         console.error('Download error:', err);
+        hideDownloadProgress();
         updateSystemStatus(`Error downloading ${path}`);
+      }
+    }
+
+    function showDownloadProgress(filename) {
+      if (!document.getElementById('download-modal')) {
+        const modal = document.createElement('div');
+        modal.id = 'download-modal';
+        modal.innerHTML = `
+          <div class="download-modal-content">
+            <div class="download-header">
+              <span class="download-icon">📥</span>
+              <span id="download-filename">Downloading...</span>
+            </div>
+            <div class="progress-container">
+              <div class="progress-bar" id="progress-bar"></div>
+              <div class="progress-text" id="progress-text">0%</div>
+            </div>
+            <div class="download-stats">
+              <span id="download-size">0 MB / 0 MB</span>
+              <span id="download-speed">0 MB/s</span>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      }
+      
+      document.getElementById('download-filename').textContent = filename;
+      document.getElementById('download-modal').style.display = 'flex';
+    }
+
+    function updateDownloadProgress(received, total, speed) {
+      const percentage = total ? (received / total * 100).toFixed(1) : 0;
+      const receivedMB = (received / (1024 * 1024)).toFixed(2);
+      const totalMB = total ? (total / (1024 * 1024)).toFixed(2) : '?';
+      const speedMBs = (speed / (1024 * 1024)).toFixed(2);
+      
+      document.getElementById('progress-bar').style.width = `${percentage}%`;
+      document.getElementById('progress-text').textContent = `${percentage}%`;
+      document.getElementById('download-size').textContent = `${receivedMB} MB / ${totalMB} MB`;
+      document.getElementById('download-speed').textContent = `${speedMBs} MB/s`;
+    }
+
+    function hideDownloadProgress() {
+      const modal = document.getElementById('download-modal');
+      if (modal) {
+        modal.style.display = 'none';
       }
     }
 
@@ -1545,7 +1651,7 @@
 
       try {
         updateSystemStatus(`Deleting ${path}...`);
-        const response = await fetch(`http://192.168.1.2:8000/recordings/${path}`, {
+        const response = await fetch(`http://192.168.8.103:8000/recordings/${path}`, {
           method: 'DELETE'
         });
 
@@ -1554,7 +1660,7 @@
         }
 
         updateSystemStatus(`Deleted ${path}`);
-        refreshRecordings(); // Refresh the list
+        refreshRecordings();
       } catch (err) {
         console.error('Delete error:', err);
         updateSystemStatus(`Error deleting ${path}`);
@@ -1568,17 +1674,16 @@
 
       try {
         updateSystemStatus('Cleaning up old recordings...');
-        const response = await fetch('http://192.168.1.2:8000/recordings/cleanup');
+        const response = await fetch('http://192.168.8.103:8000/recordings/cleanup');
         const data = await response.json();
 
         updateSystemStatus(`Cleanup completed: ${data.deleted} files deleted`);
-        refreshRecordings(); // Refresh the list
+        refreshRecordings();
       } catch (err) {
         console.error('Cleanup error:', err);
         updateSystemStatus('Error during cleanup');
       }
     }
-
 
     // System status logging
     function updateSystemStatus(message, type = '') {
@@ -1587,7 +1692,6 @@
 
       document.getElementById('system-entry').textContent = content;
 
-      // Also update the temporary location if recordings tab is active
       if (document.body.classList.contains('recordings-active')) {
         document.getElementById('temp-system-entry').textContent = content;
       }
@@ -1606,19 +1710,16 @@
     // Fetch IMU data
     async function fetchIMUData() {
       try {
-        const response = await fetch('http://192.168.1.2:8000/imu');
+        const response = await fetch('http://192.168.8.103:8000/imu');
         const data = await response.json();
         if (data && data.timestamp) {
-          // Calculate pitch, roll, yaw from accelerometer data if available
           let pitch = 0, roll = 0, yaw = 0;
           if (data.accel && data.accel.length >= 3) {
-            // Calculate pitch and roll from accelerometer data
             const [ax, ay, az] = data.accel;
             pitch = Math.atan2(ay, Math.sqrt(ax * ax + az * az)) * (180 / Math.PI);
             roll = Math.atan2(-ax, az) * (180 / Math.PI);
           }
 
-          // Convert facing direction to approximate yaw angle
           if (data.facing) {
             const directions = {
               "North": 0, "NE": 45, "East": 90, "SE": 135,
@@ -1644,9 +1745,8 @@
     // Fetch controller input data
     async function fetchControllerData() {
       try {
-        const response = await fetch('http://192.168.1.2:8000/input');
+        const response = await fetch('http://192.168.8.103:8000/input');
         const data = await response.json();
-        // Display controller data in real-time log
         if (data && (data.action || data.timestamp)) {
           const timestamp = data.timestamp || new Date().toLocaleTimeString();
           const action = data.action || 'idle';
@@ -1656,7 +1756,6 @@
 
           document.getElementById('input-entry').textContent = content;
 
-          // Also update the temporary location if recordings tab is active
           if (document.body.classList.contains('recordings-active')) {
             document.getElementById('temp-input-entry').textContent = content;
           }
@@ -1667,21 +1766,8 @@
 
         document.getElementById('input-entry').textContent = errorContent;
 
-        // Also update the temporary location if recordings tab is active
         if (document.body.classList.contains('recordings-active')) {
           document.getElementById('temp-input-entry').textContent = errorContent;
-        }
-      }
-    }
-
-    function updateMotorDisplay(m1, m2, action) {
-      // Update visual indicators based on controller input
-      if (action && action !== 'idle') {
-        const timestamp = new Date().toTimeString().split(' ')[0];
-        // Only log significant actions to avoid spam
-        if (action !== lastAction) {
-          // This is handled by the real-time controller input log now
-          lastAction = action;
         }
       }
     }
@@ -1698,7 +1784,6 @@
     let keyPressed = {};
 
     document.addEventListener('keydown', (e) => {
-      // Prevent multiple triggers for held keys
       if (keyPressed[e.key]) return;
       keyPressed[e.key] = true;
 
@@ -1714,7 +1799,7 @@
         case 'arrowleft':
         case 'a':
           move('left');
-          break;
+          break
         case 'arrowright':
         case 'd':
           move('right');
