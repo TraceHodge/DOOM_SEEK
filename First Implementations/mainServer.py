@@ -12,6 +12,7 @@ import os
 import glob
 import shutil
 from camera_control import camA_zoom_in,camB_zoom_in,camA_zoom_out,camB_zoom_out
+from image_stitcher import ImageStitcher, stitch_inspection_images
 
 app = FastAPI()
 app.mount("/ui", StaticFiles(directory="ui"), name="ui")
@@ -326,22 +327,30 @@ async def list_recordings():
 
 @app.get("/recordings/download/{path:path}")
 async def download_recording(path: str):
-    """Download a specific recording file"""
+    """Download a specific recording file - Optimized with FileResponse for fast downloads"""
     try:
         file_path = os.path.join("./recordings", path)
 
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Recording not found")
 
-        def file_generator():
-            with open(file_path, "rb") as file:
-                while chunk := file.read(8192):
-                    yield chunk
+        # Detect MIME type based on file extension for proper browser handling
+        ext = os.path.splitext(file_path)[1].lower()
+        media_types = {
+            '.mp4': 'video/mp4',
+            '.webm': 'video/webm',
+            '.mkv': 'video/x-matroska',
+            '.avi': 'video/x-msvideo',
+            '.ts': 'video/mp2t'
+        }
+        media_type = media_types.get(ext, 'application/octet-stream')
 
-        return StreamingResponse(
-            file_generator(),
-            media_type="application/octet-stream",
-            headers={"Content-Disposition": f"attachment; filename={os.path.basename(file_path)}"}
+        # FileResponse provides: optimized chunking, Content-Length header,
+        # Range request support (resume capability), and OS-level optimizations
+        return FileResponse(
+            file_path,
+            media_type=media_type,
+            filename=os.path.basename(file_path)
         )
 
     except FileNotFoundError:
@@ -388,6 +397,150 @@ async def cleanup_old_recordings():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error during cleanup: {str(e)}")
+
+# Image stitching endpoints
+@app.get("/inspection/images")
+async def list_inspection_images():
+    """List all inspection images available for stitching"""
+    try:
+        inspection_dir = "./inspection"
+        if not os.path.exists(inspection_dir):
+            os.makedirs(inspection_dir)
+            return {"images": []}
+
+        # Get all image files
+        image_files = []
+        for ext in ['*.jpg', '*.jpeg', '*.png']:
+            image_files.extend(glob.glob(os.path.join(inspection_dir, ext)))
+
+        images = []
+        for file_path in sorted(image_files):
+            file_stat = os.stat(file_path)
+            images.append({
+                "filename": os.path.basename(file_path),
+                "path": file_path.replace("./inspection/", ""),
+                "size": file_stat.st_size,
+                "modified": datetime.datetime.fromtimestamp(file_stat.st_mtime).isoformat(),
+                "size_kb": round(file_stat.st_size / 1024, 2)
+            })
+
+        return {"images": images, "count": len(images)}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing images: {str(e)}")
+
+@app.post("/stitch/panorama")
+async def create_panorama(detector: str = 'sift'):
+    """
+    Stitch all inspection images into a panorama
+
+    Args:
+        detector: Feature detector to use ('sift' or 'orb')
+    """
+    try:
+        # Check if there are images to stitch
+        inspection_dir = "./inspection"
+        image_files = glob.glob(os.path.join(inspection_dir, "*.jpg"))
+
+        if len(image_files) == 0:
+            raise HTTPException(status_code=404, detail="No images found in inspection folder")
+
+        # Perform stitching
+        output_path = stitch_inspection_images(
+            input_dir=inspection_dir,
+            output_dir="./panoramas",
+            detector=detector
+        )
+
+        if output_path is None:
+            raise HTTPException(status_code=500, detail="Stitching failed - ensure images have sufficient overlap")
+
+        # Get file info
+        file_stat = os.stat(output_path)
+
+        return {
+            "success": True,
+            "panorama": {
+                "filename": os.path.basename(output_path),
+                "path": output_path,
+                "size": file_stat.st_size,
+                "size_mb": round(file_stat.st_size / (1024 * 1024), 2),
+                "created": datetime.datetime.fromtimestamp(file_stat.st_mtime).isoformat()
+            },
+            "source_images": len(image_files)
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating panorama: {str(e)}")
+
+@app.get("/panoramas")
+async def list_panoramas():
+    """List all created panoramas"""
+    try:
+        panoramas_dir = "./panoramas"
+        if not os.path.exists(panoramas_dir):
+            os.makedirs(panoramas_dir)
+            return {"panoramas": []}
+
+        # Get all panorama files
+        panorama_files = []
+        for ext in ['*.jpg', '*.jpeg', '*.png']:
+            panorama_files.extend(glob.glob(os.path.join(panoramas_dir, ext)))
+
+        panoramas = []
+        for file_path in sorted(panorama_files, reverse=True):
+            file_stat = os.stat(file_path)
+            panoramas.append({
+                "filename": os.path.basename(file_path),
+                "path": file_path.replace("./panoramas/", ""),
+                "size": file_stat.st_size,
+                "size_mb": round(file_stat.st_size / (1024 * 1024), 2),
+                "created": datetime.datetime.fromtimestamp(file_stat.st_mtime).isoformat()
+            })
+
+        return {"panoramas": panoramas, "count": len(panoramas)}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing panoramas: {str(e)}")
+
+@app.get("/panoramas/download/{filename}")
+async def download_panorama(filename: str):
+    """Download a panorama file"""
+    try:
+        file_path = os.path.join("./panoramas", filename)
+
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Panorama not found")
+
+        return FileResponse(
+            file_path,
+            media_type="image/jpeg",
+            filename=filename
+        )
+
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Panorama not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error downloading panorama: {str(e)}")
+
+@app.delete("/panoramas/{filename}")
+async def delete_panorama(filename: str):
+    """Delete a panorama file"""
+    try:
+        file_path = os.path.join("./panoramas", filename)
+
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Panorama not found")
+
+        os.remove(file_path)
+        return {"message": f"Panorama {filename} deleted successfully"}
+
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Panorama not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting panorama: {str(e)}")
 
 @app.on_event("startup")
 async def startup_event():
