@@ -35,190 +35,86 @@
       flex-direction: column;
     }
 
-    /* Header */
+    /* Header - Transparent Overlay */
     .header {
-      background: var(--bg-secondary);
-      border-bottom: 2px solid var(--primary-color);
-      padding: 12px 20px;
+      background: transparent;
+      border-bottom: none;
+      padding: 8px 15px;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
-      box-shadow: 0 2px 20px rgba(0, 212, 255, 0.2);
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .logo-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    .logo-icon img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .logo-text h1 {
-      font-size: 24px;
-      font-weight: 700;
-      background: var(--primary-color);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .logo-text span {
-      font-size: 12px;
-      color: var(--text-secondary);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
     }
 
     .header-controls {
       display: flex;
-      gap: 15px;
-      align-items: center;
-    }
-
-    .connection-status {
-      display: flex;
-      align-items: center;
       gap: 8px;
-      padding: 8px 16px;
-      background: var(--bg-tertiary);
-      border-radius: 20px;
-      border: 1px solid var(--border-color);
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--success-color);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+      align-items: center;
     }
 
     .emergency-stop {
-      padding: 10px 24px;
-      background: var(--danger-color);
-      border: none;
-      border-radius: 8px;
+      padding: 6px 14px;
+      background: rgba(255, 56, 56, 0.8);
+      border: 1px solid rgba(255, 56, 56, 0.6);
+      border-radius: 5px;
       color: white;
       font-weight: 600;
+      font-size: 11px;
       cursor: pointer;
       transition: all 0.3s;
       box-shadow: 0 4px 15px rgba(255, 56, 56, 0.3);
+      backdrop-filter: blur(10px);
     }
 
     .emergency-stop:hover {
+      background: rgba(255, 56, 56, 0.95);
       transform: scale(1.05);
       box-shadow: 0 6px 20px rgba(255, 56, 56, 0.5);
     }
 
-    /* Main Layout */
-    .main-container {
-      flex: 1;
-      display: flex;
-      gap: 15px;
-      padding: 15px;
-      overflow: auto;
-      max-height: calc(100vh - 80px);
-    }
-
-    /* Left Panel - Cameras */
-    .left-panel {
-      flex: 2.5;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .camera-container {
-      background: var(--bg-secondary);
-      border-radius: 12px;
-      overflow: hidden;
-      position: relative;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--border-color);
-    }
-
-    .camera-header {
-      background: linear-gradient(90deg, var(--bg-tertiary), var(--bg-secondary));
-      padding: 10px 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .camera-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .controls-toggle {
+      padding: 6px 14px;
+      background: rgba(0, 212, 255, 0.8);
+      border: 1px solid rgba(0, 212, 255, 0.6);
+      border-radius: 5px;
+      color: white;
       font-weight: 600;
-    }
-
-    .camera-indicator {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--success-color);
-    }
-
-    .camera-controls {
-      display: flex;
-      gap: 8px;
-    }
-
-    .camera-btn {
-      padding: 6px 12px;
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      color: var(--text-secondary);
+      font-size: 11px;
       cursor: pointer;
       transition: all 0.3s;
-      font-size: 12px;
+      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+      backdrop-filter: blur(10px);
     }
 
-    .camera-btn:hover {
-      background: var(--primary-color);
-      color: var(--text-primary);
-      border-color: var(--primary-color);
+    .controls-toggle:hover {
+      background: rgba(0, 212, 255, 0.95);
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+    }
+
+    /* Full Background Camera */
+    .camera-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: #000;
+      z-index: 1;
     }
 
     .camera-view {
-      position: relative;
-      background: #000;
+      width: 100%;
       height: 100%;
-    }
-
-    .main-camera {
-      height: 65%;
-    }
-
-    .main-camera .camera-view {
-      height: calc(100% - 50px);
-    }
-
-    .secondary-camera {
-      height: 35%;
-    }
-
-    .secondary-camera .camera-view {
-      height: calc(100% - 50px);
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
     }
 
     .camera-view iframe {
@@ -227,18 +123,73 @@
       border: none;
     }
 
+<<<<<<< HEAD
+=======
+    .camera-label {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 10px;
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .camera-label-separator {
+      width: 1px;
+      height: 14px;
+      background: var(--primary-color);
+      opacity: 0.5;
+    }
+
+    .doomseek-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0.8;
+    }
+
+    .doomseek-badge-icon {
+      width: 14px;
+      height: 14px;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .doomseek-badge-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .doomseek-badge-text {
+      font-size: 8px;
+      font-weight: 700;
+      color: var(--primary-color);
+      letter-spacing: 0.5px;
+    }
+
+>>>>>>> b3eee6b (Updated ui)
     .recording-indicator {
       position: absolute;
-      top: 20px;
-      right: 20px;
+      top: 12px;
+      right: 12px;
       display: none;
       align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      background: rgba(255, 0, 0, 0.8);
-      border-radius: 20px;
-      font-size: 12px;
+      gap: 6px;
+      padding: 5px 10px;
+      background: rgba(255, 0, 0, 0.9);
+      border-radius: 15px;
+      font-size: 10px;
       font-weight: 600;
+      z-index: 10;
     }
 
     .recording-indicator.active {
@@ -246,8 +197,8 @@
     }
 
     .rec-dot {
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: white;
       animation: blink 1s infinite;
@@ -258,60 +209,334 @@
       50% { opacity: 0; }
     }
 
-    /* Middle Panel - Status */
-    .middle-panel {
-      flex: 1.5;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .status-card {
+    /* Small Camera - Bottom Left Overlay (Resizable) */
+    .secondary-camera-overlay {
+      position: fixed;
+      bottom: 15px;
+      left: 15px;
+      width: 280px;
+      height: 180px;
+      min-width: 180px;
+      min-height: 110px;
+      max-width: 500px;
+      max-height: 350px;
       background: var(--bg-secondary);
-      border-radius: 12px;
-      padding: 15px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid var(--primary-color);
+      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+      z-index: 50;
+      resize: both;
     }
 
-    .status-header {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .status-icon {
-      width: 20px;
-      height: 20px;
-      background: var(--primary-color);
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .secondary-camera-overlay::after {
+      content: '⋰';
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
       font-size: 12px;
+      color: var(--primary-color);
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .secondary-camera-overlay .camera-view {
+      height: 100%;
+    }
+
+    .secondary-camera-overlay .camera-label {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      padding: 3px 8px;
+      font-size: 9px;
+      display: flex;
+      align-items: center;
+    }
+
+    .secondary-camera-overlay .recording-indicator {
+      top: 6px;
+      right: 6px;
+      padding: 3px 8px;
+      font-size: 9px;
+    }
+
+    .swap-btn {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      background: var(--primary-color);
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 9px;
+      color: var(--bg-primary);
+      transition: all 0.3s ease;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0, 212, 255, 0.5);
+    }
+
+    .swap-btn:hover {
+      background: #00b8e6;
+      transform: scale(1.05);
+    }
+
+    /* Forward Direction Arrow */
+    .forward-arrow {
+      position: absolute;
+      top: 50px;
+      left: 12px;
+      z-index: 10;
+      opacity: 0.8;
+      pointer-events: none;
+      animation: arrowPulse 2s ease-in-out infinite;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--warning-color);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Forward arrow in main camera view */
+    #main-camera-view .forward-arrow {
+      top: 50px;
+    }
+
+    /* Forward arrow in secondary camera view */
+    .secondary-camera-overlay .forward-arrow {
+      top: 35px;
+    }
+
+    @keyframes arrowPulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+
+    .forward-arrow-icon {
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 14px solid var(--warning-color);
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+    }
+
+    .forward-arrow-label {
+      color: var(--warning-color);
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+      white-space: nowrap;
+    }
+
+    /* Bottom Right Info Cluster - Horizontal Layout */
+    .bottom-right-cluster {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      z-index: 50;
+      align-items: flex-end;
+    }
+
+    /* Controller Input - Ultra Compact with System Status - RESIZABLE */
+    .controller-compact {
+      background: rgba(30, 36, 51, 0.95);
+      border: 1px solid var(--secondary-color);
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 7px;
+      line-height: 1.1;
+      box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+      width: 350px;
+      height: 45px;
+      max-width: 600px;
+      min-width: 200px;
+      min-height: 30px;
+      max-height: 120px;
+      resize: both;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .controller-compact::after {
+      content: '⋰';
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      font-size: 12px;
+      color: var(--secondary-color);
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .controller-compact .controller-row {
+      white-space: normal;
+      margin-bottom: 3px;
+      word-break: break-word;
+    }
+
+    .controller-compact .controller-label {
+      color: var(--secondary-color);
+      font-weight: 700;
+      font-size: 6px;
+      display: inline;
+      margin-right: 6px;
+    }
+
+    .controller-compact .controller-value {
+      color: #e0e0e0;
+      font-weight: 600;
+      font-size: 6px;
+      font-family: 'Courier New', monospace;
+      display: inline;
+    }
+
+    .controller-compact .system-status-row {
+      white-space: normal;
+      border-top: 1px solid var(--border-color);
+      padding-top: 3px;
+      margin-top: 2px;
+      word-break: break-word;
+    }
+
+    .controller-compact .system-label {
+      color: var(--secondary-color);
+      font-weight: 700;
+      font-size: 6px;
+      display: inline;
+      margin-right: 6px;
+    }
+
+    .controller-compact .system-value {
+      color: #e0e0e0;
+      font-weight: 600;
+      font-size: 6px;
+      font-family: 'Courier New', monospace;
+      display: inline;
+    }
+
+    /* IMU Data - Ultra Compact Box - RESIZABLE */
+    .imu-compact {
+      background: rgba(30, 36, 51, 0.95);
+      border: 1px solid var(--primary-color);
+      border-radius: 4px;
+      padding: 5px 8px;
+      font-size: 7px;
+      line-height: 1.1;
+      box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
+      width: 130px;
+      height: 85px;
+      min-width: 85px;
+      max-width: 250px;
+      min-height: 60px;
+      max-height: 180px;
+      resize: both;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .imu-compact::after {
+      content: '⋰';
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      font-size: 12px;
+      color: var(--primary-color);
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .imu-compact .imu-title {
+      color: var(--primary-color);
+      font-weight: 700;
+      font-size: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 3px;
+      text-align: center;
+      border-bottom: 1px solid var(--primary-color);
+      padding-bottom: 2px;
+    }
+
+    .imu-compact .imu-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 1px 0;
+      color: #e0e0e0;
+    }
+
+    .imu-compact .imu-label {
+      color: #8a9ba8;
+      font-weight: 600;
+      font-size: 6px;
+    }
+
+    .imu-compact .imu-value {
+      color: var(--success-color);
+      font-weight: 600;
+      font-size: 6px;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Controls Dropdown Menu - More Compact */
+    .controls-dropdown {
+      position: fixed;
+      top: 0;
+      right: -340px;
+      width: 320px;
+      max-height: 100vh;
+      background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+      border-left: 2px solid var(--primary-color);
+      border-bottom: 2px solid var(--primary-color);
+      box-shadow: -5px 5px 20px rgba(0, 0, 0, 0.5);
+      transition: right 0.3s ease;
+      z-index: 90;
+      overflow-y: auto;
+      padding: 50px 10px 10px 10px;
+      border-bottom-left-radius: 8px;
+    }
+
+    .controls-dropdown.open {
+      right: 0;
     }
 
     .mission-timer {
+      background: var(--bg-tertiary);
+      padding: 6px 8px;
+      border-radius: 4px;
+      margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px;
-      background: var(--bg-tertiary);
-      border-radius: 8px;
-      margin-bottom: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    .timer-label {
+      font-size: 9px;
+      color: var(--text-secondary);
+      font-weight: 600;
     }
 
     .timer-display {
-      font-size: 24px;
+      font-size: 14px;
       font-weight: 700;
       font-family: 'Courier New', monospace;
       color: var(--primary-color);
     }
 
+<<<<<<< HEAD
     .sensor-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -346,32 +571,35 @@
       max-height: calc(100vh - 110px);
     }
 
+=======
+>>>>>>> b3eee6b (Updated ui)
     .control-section {
-      background: var(--bg-secondary);
-      border-radius: 12px;
-      padding: 15px;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      padding: 8px;
+      margin-bottom: 10px;
       border: 1px solid var(--border-color);
     }
 
     .control-tabs {
       display: flex;
-      gap: 5px;
-      margin-bottom: 15px;
-      background: var(--bg-tertiary);
-      padding: 4px;
-      border-radius: 8px;
+      gap: 4px;
+      margin-bottom: 8px;
+      background: var(--bg-primary);
+      padding: 3px;
+      border-radius: 4px;
     }
 
     .tab-btn {
       flex: 1;
-      padding: 8px;
+      padding: 5px;
       background: transparent;
       border: none;
-      border-radius: 6px;
+      border-radius: 3px;
       color: var(--text-secondary);
       cursor: pointer;
       transition: all 0.3s;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 500;
     }
 
@@ -380,17 +608,25 @@
       color: var(--text-primary);
     }
 
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
     .control-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
+      gap: 5px;
     }
 
     .control-btn {
-      padding: 15px;
-      background: var(--bg-tertiary);
+      padding: 10px;
+      background: var(--bg-secondary);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 5px;
       color: var(--text-primary);
       cursor: pointer;
       transition: all 0.3s;
@@ -398,7 +634,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 10px;
     }
 
     .control-btn:hover {
@@ -413,27 +649,27 @@
     }
 
     .control-icon {
-      font-size: 20px;
-      margin-bottom: 4px;
+      font-size: 16px;
+      margin-bottom: 3px;
     }
 
     .speed-control {
-      margin-top: 15px;
+      margin-top: 8px;
     }
 
     .speed-slider {
       width: 100%;
-      height: 6px;
+      height: 5px;
       border-radius: 3px;
-      background: var(--bg-tertiary);
+      background: var(--bg-primary);
       outline: none;
       -webkit-appearance: none;
     }
 
     .speed-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       background: var(--primary-color);
       cursor: pointer;
@@ -442,17 +678,46 @@
     .speed-display {
       display: flex;
       justify-content: space-between;
-      margin-top: 8px;
-      font-size: 12px;
+      margin-top: 5px;
+      font-size: 10px;
       color: var(--text-secondary);
     }
 
-    .recording-item {
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 10px;
+    .camera-controls-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 8px;
+    }
+
+    .camera-action-btns {
+      display: flex;
+      gap: 4px;
+    }
+
+    .camera-btn {
+      padding: 4px 8px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 9px;
+    }
+
+    .camera-btn:hover {
+      background: var(--primary-color);
+      color: var(--text-primary);
+      border-color: var(--primary-color);
+    }
+
+    .recording-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      padding: 6px;
+      margin-bottom: 5px;
       transition: all 0.3s;
     }
 
@@ -463,30 +728,30 @@
 
     .recording-name {
       font-weight: 600;
-      margin-bottom: 4px;
-      font-size: 12px;
+      margin-bottom: 2px;
+      font-size: 10px;
     }
 
     .recording-details {
-      font-size: 10px;
+      font-size: 8px;
       color: var(--text-secondary);
-      margin-bottom: 8px;
+      margin-bottom: 5px;
     }
 
     .recording-actions {
       display: flex;
-      gap: 5px;
+      gap: 3px;
     }
 
     .recording-btn {
-      padding: 4px 8px;
-      background: var(--bg-secondary);
+      padding: 3px 6px;
+      background: var(--bg-tertiary);
       border: 1px solid var(--border-color);
-      border-radius: 4px;
+      border-radius: 3px;
       color: var(--text-secondary);
       cursor: pointer;
       transition: all 0.3s;
-      font-size: 10px;
+      font-size: 9px;
       flex: 1;
       text-align: center;
     }
@@ -507,6 +772,7 @@
       background: #ff5555;
     }
 
+<<<<<<< HEAD
     .recordings-active .right-panel {
       max-height: none;
       overflow-y: visible;
@@ -514,9 +780,24 @@
 
     .recordings-active #input-log-box,
     .recordings-active #system-log-box {
+=======
+    /* Download Progress Modal */
+    #download-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+>>>>>>> b3eee6b (Updated ui)
       display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      backdrop-filter: blur(5px);
     }
 
+<<<<<<< HEAD
     .recordings-active .middle-panel {
       flex-direction: column;
     }
@@ -535,29 +816,71 @@
     }
 
     .log-box {
+=======
+    .download-modal-content {
+>>>>>>> b3eee6b (Updated ui)
       background: var(--bg-secondary);
       border: 2px solid var(--primary-color);
-      padding: 15px;
-      font-size: 14px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+      border-radius: 16px;
+      padding: 30px;
+      min-width: 400px;
+      box-shadow: 0 10px 40px rgba(0, 212, 255, 0.4);
     }
 
-    .log-box strong {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 16px;
-      color: var(--primary-color);
+    .download-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      font-size: 18px;
       font-weight: 600;
-    }
-
-    .log-box div {
       color: var(--text-primary);
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      line-height: 1.4;
     }
 
+    .download-icon {
+      font-size: 32px;
+    }
+
+    .progress-container {
+      position: relative;
+      width: 100%;
+      height: 30px;
+      background: var(--bg-tertiary);
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 15px;
+      border: 1px solid var(--border-color);
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      width: 0%;
+      transition: width 0.3s ease;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+    }
+
+    .progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-primary);
+      text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    }
+
+    .download-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-family: 'Courier New', monospace;
+    }
+
+<<<<<<< HEAD
     /* Download Progress Modal */
     #download-modal {
       position: fixed;
@@ -635,11 +958,14 @@
       font-family: 'Courier New', monospace;
     }
 
+=======
+>>>>>>> b3eee6b (Updated ui)
     .download-stats span {
       padding: 5px 10px;
       background: var(--bg-tertiary);
       border-radius: 6px;
       border: 1px solid var(--border-color);
+<<<<<<< HEAD
     }
 
     /* Responsive */
@@ -661,28 +987,22 @@
         min-width: 300px;
         padding: 20px;
       }
+=======
+>>>>>>> b3eee6b (Updated ui)
     }
 
-    @media (max-width: 1024px) {
-      .middle-panel {
-        display: none;
-      }
-
-      .left-panel {
-        flex: 2;
-      }
-
-      .right-panel {
-        max-height: calc(50vh - 60px);
-        overflow-y: auto;
-      }
+    /* Flash animation */
+    @keyframes flash {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
 
-    @media (max-width: 768px) {
-      .recordings-active .recording-item {
-        padding: 6px;
-      }
+    /* Scrollbar Styling */
+    .controls-dropdown::-webkit-scrollbar {
+      width: 5px;
+    }
 
+<<<<<<< HEAD
       .recordings-active .recording-actions {
         flex-direction: column;
         gap: 3px;
@@ -692,6 +1012,20 @@
         min-width: 250px;
         padding: 15px;
       }
+=======
+    .controls-dropdown::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+      border-radius: 3px;
+    }
+
+    .controls-dropdown::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 3px;
+    }
+
+    .controls-dropdown::-webkit-scrollbar-thumb:hover {
+      background: #00b8e6;
+>>>>>>> b3eee6b (Updated ui)
     }
   </style>
   <script src="https://unpkg.com/streamsaver@2.0.5/StreamSaver.min.js"></script>
@@ -699,24 +1033,13 @@
 <body>
   <!-- Header -->
   <div class="header">
-    <div class="logo">
-      <div class="logo-icon">
-        <img src="86fa564b-cb9d-4137-98f3-51caed427677.jfif" alt="DOOM_SEEK Logo">
-      </div>
-      <div class="logo-text">
-        <h1>DOOM_SEEK</h1>
-        <span>Transformer Inspection System</span>
-      </div>
-    </div>
     <div class="header-controls">
-      <div class="connection-status">
-        <div class="status-dot"></div>
-        <span>Robot Connected</span>
-      </div>
-      <button class="emergency-stop" onclick="emergencyStop()">⚠ EMERGENCY STOP</button>
+      <button class="emergency-stop" onclick="emergencyStop()">⚠ E-STOP</button>
+      <button class="controls-toggle" onclick="toggleControls()">☰ CONTROLS</button>
     </div>
   </div>
 
+<<<<<<< HEAD
   <!-- Main Container -->
   <div class="main-container">
     <!-- Left Panel - Cameras -->
@@ -738,10 +1061,30 @@
           <div class="recording-indicator" id="main-recording">
             <div class="rec-dot"></div>
             <span>REC</span>
+=======
+  <!-- Full Background Camera -->
+  <div class="camera-background">
+    <div class="camera-view" id="main-camera-view">
+      <iframe src="http://192.168.8.103:8889/webrtc/camB" id="main-iframe"></iframe>
+      <div class="camera-label" id="main-cam-label">
+        <span>Inspection Camera</span>
+        <div class="camera-label-separator"></div>
+        <div class="doomseek-badge">
+          <div class="doomseek-badge-icon">
+            <img src="86fa564b-cb9d-4137-98f3-51caed427677.jfif" alt="DOOMSEEK">
+>>>>>>> b3eee6b (Updated ui)
           </div>
+          <span class="doomseek-badge-text">DOOMSEEK</span>
         </div>
       </div>
+      <div class="recording-indicator" id="main-recording">
+        <div class="rec-dot"></div>
+        <span>REC</span>
+      </div>
+    </div>
+  </div>
 
+<<<<<<< HEAD
       <div class="camera-container secondary-camera">
         <div class="camera-header">
           <div class="camera-title">
@@ -755,22 +1098,124 @@
         <div class="camera-view" id="secondary-camera-view">
           <iframe src="http://192.168.8.103:8889/webrtc/camA" id="secondary-iframe"></iframe>
         </div>
+=======
+  <!-- Small Secondary Camera Overlay (Bottom Left) -->
+  <div class="secondary-camera-overlay">
+    <div class="camera-view">
+      <iframe src="http://192.168.8.103:8889/webrtc/camA" id="secondary-iframe"></iframe>
+    </div>
+    <div class="camera-label" id="secondary-cam-label">Driving Camera</div>
+    <div class="recording-indicator" id="secondary-recording">
+      <div class="rec-dot"></div>
+      <span>REC</span>
+    </div>
+    <div class="forward-arrow">
+      <div class="forward-arrow-icon"></div>
+      <span class="forward-arrow-label">FORWARD</span>
+    </div>
+    <button class="swap-btn" onclick="swapCameras()">⇄ SWAP</button>
+  </div>
+
+  <!-- Bottom Right Info Cluster -->
+  <div class="bottom-right-cluster">
+    <!-- Controller Input + System Status - Compact Box (LEFT) -->
+    <div class="controller-compact">
+      <div class="controller-row">
+        <span class="controller-label">CONTROLLER:</span>
+        <span class="controller-value" id="input-entry">Waiting for inputs...</span>
+      </div>
+      <div class="system-status-row">
+        <span class="system-label">SYSTEM:</span>
+        <span class="system-value" id="system-entry">System ready - DOOMSEEK online</span>
+>>>>>>> b3eee6b (Updated ui)
       </div>
     </div>
 
-    <!-- Middle Panel - Status -->
-    <div class="middle-panel">
-      <div class="status-card">
-        <div class="status-header">
-          <div class="status-icon">⏱</div>
-          <span>Mission Status</span>
+    <!-- IMU Data Compact (RIGHT) -->
+    <div class="imu-compact">
+      <div class="imu-title">IMU</div>
+      <div class="imu-row">
+        <span class="imu-label">Pitch:</span>
+        <span class="imu-value" id="pitch">0.0°</span>
+      </div>
+      <div class="imu-row">
+        <span class="imu-label">Roll:</span>
+        <span class="imu-value" id="roll">0.0°</span>
+      </div>
+      <div class="imu-row">
+        <span class="imu-label">Yaw:</span>
+        <span class="imu-value" id="yaw">0.0°</span>
+      </div>
+      <div class="imu-row">
+        <span class="imu-label">Surface:</span>
+        <span class="imu-value" id="surface">Wall</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls Dropdown Menu - More Compact -->
+  <div class="controls-dropdown" id="controlsDropdown">
+    <!-- Mission Timer -->
+    <div class="mission-timer">
+      <span class="timer-label">Mission Time</span>
+      <span class="timer-display" id="timer">00:00:00</span>
+    </div>
+
+    <!-- Camera Action Buttons -->
+    <div class="camera-controls-header">
+      <span style="font-size: 10px; font-weight: 600; color: var(--text-secondary);">Quick Actions</span>
+      <div class="camera-action-btns">
+        <button class="camera-btn" onclick="startRecording('main')">⏺ Record</button>
+        <button class="camera-btn" onclick="takeSnapshot('main')">📸 Snap</button>
+      </div>
+    </div>
+
+    <!-- Control Tabs -->
+    <div class="control-section">
+      <div class="control-tabs">
+        <button class="tab-btn active" onclick="showTab('movement')">Movement</button>
+        <button class="tab-btn" onclick="showTab('camera')">Camera</button>
+        <button class="tab-btn" onclick="showTab('recordings')">Recordings</button>
+      </div>
+
+      <!-- Movement Tab -->
+      <div id="movement" class="tab-content active">
+        <div class="control-grid">
+          <div></div>
+          <button class="control-btn" onclick="move('forward')">
+            <span class="control-icon">↑</span>
+            <span>Forward</span>
+          </button>
+          <div></div>
+          <button class="control-btn" onclick="move('left')">
+            <span class="control-icon">←</span>
+            <span>Left</span>
+          </button>
+          <button class="control-btn" onclick="move('stop')">
+            <span class="control-icon">⬜</span>
+            <span>Stop</span>
+          </button>
+          <button class="control-btn" onclick="move('right')">
+            <span class="control-icon">→</span>
+            <span>Right</span>
+          </button>
+          <div></div>
+          <button class="control-btn" onclick="move('reverse')">
+            <span class="control-icon">↓</span>
+            <span>Reverse</span>
+          </button>
+          <div></div>
         </div>
-        <div class="mission-timer">
-          <span>Elapsed Time</span>
-          <span class="timer-display" id="timer">00:00:00</span>
+        <div class="speed-control">
+          <div class="speed-display">
+            <span>Speed Control</span>
+            <span id="speed-value">50%</span>
+          </div>
+          <input type="range" class="speed-slider" id="speed-slider" min="0" max="100" value="50" oninput="updateSpeed(this.value)">
         </div>
       </div>
 
+<<<<<<< HEAD
       <div class="status-card">
         <div class="status-header">
           <div class="status-icon">🎯</div>
@@ -793,145 +1238,85 @@
             <div class="sensor-label">Surface</div>
             <div class="sensor-value" id="surface">Wall</div>
           </div>
+=======
+      <!-- Camera Tab -->
+      <div id="camera" class="tab-content">
+        <div class="control-grid">
+          <button class="control-btn" onclick="zoomCamera('in')">
+            <span class="control-icon">🔍+</span>
+            <span>Zoom In</span>
+          </button>
+          <button class="control-btn" onclick="zoomCamera('out')">
+            <span class="control-icon">🔍-</span>
+            <span>Zoom Out</span>
+          </button>
+          <button class="control-btn" onclick="rotateCamera(0)">
+            <span class="control-icon">⟲</span>
+            <span>Reset</span>
+          </button>
+          <button class="control-btn" onclick="rotateCamera(90)">
+            <span class="control-icon">↶</span>
+            <span>90° Left</span>
+          </button>
+          <button class="control-btn" onclick="rotateCamera(270)">
+            <span class="control-icon">↷</span>
+            <span>90° Right</span>
+          </button>
+          <button class="control-btn" onclick="rotateCamera(180)">
+            <span class="control-icon">⟳</span>
+            <span>180°</span>
+          </button>
+          <button class="control-btn" onclick="toggleNightVision()">
+            <span class="control-icon">👁</span>
+            <span>Night</span>
+          </button>
+          <button class="control-btn" onclick="toggleLED()">
+            <span class="control-icon">💡</span>
+            <span>LED</span>
+          </button>
+          <button class="control-btn" onclick="toggleMagnet()">
+            <span class="control-icon">🧲</span>
+            <span>Magnet</span>
+          </button>
+>>>>>>> b3eee6b (Updated ui)
         </div>
       </div>
 
-      <!-- Temporary containers for moved logs during recordings view -->
-      <div class="temp-logs">
-        <div class="system-log">
-          <div class="log-box" id="temp-input-log-box">
-            <strong>Controller Inputs</strong>
-            <div id="temp-input-entry">Waiting for inputs...</div>
-          </div>
+      <!-- Recordings Tab -->
+      <div id="recordings" class="tab-content">
+        <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+          <button class="control-btn" onclick="refreshRecordings()" style="flex: 1;">
+            <span class="control-icon">🔄</span>
+            <span>Refresh</span>
+          </button>
+          <button class="control-btn" onclick="cleanupRecordings()" style="flex: 1;">
+            <span class="control-icon">🗑️</span>
+            <span>Cleanup</span>
+          </button>
         </div>
-
-        <div class="system-log">
-          <div class="log-box" id="temp-system-log-box">
-            <strong>System Status</strong>
-            <div id="temp-system-entry">System ready - DOOMSEEK online</div>
+        <div id="recordings-list" style="max-height: 200px; overflow-y: auto;">
+          <div style="text-align: center; color: var(--text-secondary); padding: 12px; font-size: 10px;">
+            Loading recordings...
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Right Panel - Controls -->
-    <div class="right-panel">
-      <div class="control-section">
-        <div class="control-tabs">
-          <button class="tab-btn active" onclick="showTab('movement')">Movement</button>
-          <button class="tab-btn" onclick="showTab('camera')">Camera</button>
-          <button class="tab-btn" onclick="showTab('recordings')">Recordings</button>
-        </div>
-
-        <div id="movement" class="tab-content active">
-          <div class="control-grid">
-            <div></div>
-            <button class="control-btn" onclick="move('forward')">
-              <span class="control-icon">↑</span>
-              <span>Forward</span>
-            </button>
-            <div></div>
-            <button class="control-btn" onclick="move('left')">
-              <span class="control-icon">←</span>
-              <span>Left</span>
-            </button>
-            <button class="control-btn" onclick="move('stop')">
-              <span class="control-icon">⬜</span>
-              <span>Stop</span>
-            </button>
-            <button class="control-btn" onclick="move('right')">
-              <span class="control-icon">→</span>
-              <span>Right</span>
-            </button>
-            <div></div>
-            <button class="control-btn" onclick="move('reverse')">
-              <span class="control-icon">↓</span>
-              <span>Reverse</span>
-            </button>
-            <div></div>
-          </div>
-          <div class="speed-control">
-            <div class="speed-display">
-              <span>Speed Control</span>
-              <span id="speed-value">50%</span>
-            </div>
-            <input type="range" class="speed-slider" id="speed-slider" min="0" max="100" value="50" oninput="updateSpeed(this.value)">
-          </div>
-        </div>
-
-        <div id="camera" class="tab-content" style="display: none;">
-          <div class="control-grid">
-            <button class="control-btn" onclick="zoomCamera('in')">
-              <span class="control-icon">🔍+</span>
-              <span>Zoom In</span>
-            </button>
-            <button class="control-btn" onclick="zoomCamera('out')">
-              <span class="control-icon">🔍-</span>
-              <span>Zoom Out</span>
-            </button>
-            <button class="control-btn" onclick="rotateCamera(0)">
-              <span class="control-icon">⟲</span>
-              <span>Reset</span>
-            </button>
-            <button class="control-btn" onclick="rotateCamera(90)">
-              <span class="control-icon">↶</span>
-              <span>90° Left</span>
-            </button>
-            <button class="control-btn" onclick="rotateCamera(270)">
-              <span class="control-icon">↷</span>
-              <span>90° Right</span>
-            </button>
-            <button class="control-btn" onclick="rotateCamera(180)">
-              <span class="control-icon">⟳</span>
-              <span>180°</span>
-            </button>
-            <button class="control-btn" onclick="toggleNightVision()">
-              <span class="control-icon">👁</span>
-              <span>Night</span>
-            </button>
-            <button class="control-btn" onclick="toggleLED()">
-              <span class="control-icon">💡</span>
-              <span>LED</span>
-            </button>
-            <button class="control-btn" onclick="toggleMagnet()">
-              <span class="control-icon">🧲</span>
-              <span>Magnet</span>
-            </button>
-          </div>
-        </div>
-
-        <div id="recordings" class="tab-content" style="display: none;">
-          <div class="recordings-header" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-            <button class="control-btn" onclick="refreshRecordings()" style="flex: 1; margin-right: 5px;">
-              <span class="control-icon">🔄</span>
-              <span>Refresh</span>
-            </button>
-            <button class="control-btn" onclick="cleanupRecordings()" style="flex: 1; margin-left: 5px;">
-              <span class="control-icon">🗑️</span>
-              <span>Cleanup</span>
-            </button>
-          </div>
-          <div id="recordings-list" style="max-height: 300px; overflow-y: auto;">
-            <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
-              Loading recordings...
-            </div>
-          </div>
-        </div>
-
+  <!-- Download Progress Modal -->
+  <div id="download-modal">
+    <div class="download-modal-content">
+      <div class="download-header">
+        <span class="download-icon">📥</span>
+        <span id="download-filename">Downloading...</span>
       </div>
-
-      <div class="system-log">
-        <div class="log-box" id="input-log-box">
-          <strong>Controller Inputs</strong>
-          <div id="input-entry">Waiting for inputs...</div>
-        </div>
+      <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+        <div class="progress-text" id="progress-text">0%</div>
       </div>
-
-      <div class="system-log">
-        <div class="log-box" id="system-log-box">
-          <strong>System Status</strong>
-          <div id="system-entry">System ready - DOOMSEEK online</div>
-        </div>
+      <div class="download-stats">
+        <span id="download-size">0 MB / 0 MB</span>
+        <span id="download-speed">0 MB/s</span>
       </div>
     </div>
   </div>
@@ -948,6 +1333,11 @@
     }
     setInterval(updateTimer, 1000);
 
+    // Toggle controls dropdown
+    function toggleControls() {
+      document.getElementById('controlsDropdown').classList.toggle('open');
+    }
+
     // Tab switching
     function showTab(tabName) {
       const tabs = document.querySelectorAll('.tab-content');
@@ -958,6 +1348,7 @@
       document.getElementById(tabName).style.display = 'block';
       event.target.classList.add('active');
 
+<<<<<<< HEAD
       const mainContainer = document.querySelector('.main-container');
       const bodyElement = document.body;
 
@@ -971,6 +1362,10 @@
         mainContainer.classList.remove('recordings-active');
         bodyElement.classList.remove('recordings-active');
         moveLogsToRight();
+=======
+      if (tabName === 'recordings') {
+        refreshRecordings();
+>>>>>>> b3eee6b (Updated ui)
       }
     }
 
@@ -1271,7 +1666,43 @@
       const secondaryLabel = document.getElementById('secondary-cam-label');
       
       [mainIframe.src, secondaryIframe.src] = [secondaryIframe.src, mainIframe.src];
-      [mainLabel.textContent, secondaryLabel.textContent] = [secondaryLabel.textContent, mainLabel.textContent];
+      
+      // Get the camera names (first span in each label)
+      const mainCameraName = mainLabel.querySelector('span') ? mainLabel.querySelector('span').textContent : mainLabel.textContent;
+      const secondaryCameraName = secondaryLabel.textContent;
+      
+      // Update main label with structured content including DOOMSEEK badge
+      mainLabel.innerHTML = `
+        <span>${secondaryCameraName}</span>
+        <div class="camera-label-separator"></div>
+        <div class="doomseek-badge">
+          <div class="doomseek-badge-icon">
+            <img src="86fa564b-cb9d-4137-98f3-51caed427677.jfif" alt="DOOMSEEK">
+          </div>
+          <span class="doomseek-badge-text">DOOMSEEK</span>
+        </div>
+      `;
+      
+      // Update secondary label with simple text
+      secondaryLabel.textContent = mainCameraName;
+
+      // Handle forward arrow - should always be on Driving Camera
+      const mainView = document.getElementById('main-camera-view');
+      const secondaryView = document.querySelector('.secondary-camera-overlay');
+      let forwardArrow = document.querySelector('.forward-arrow');
+      
+      // Check which camera is now the driving camera
+      if (secondaryCameraName === 'Driving Camera') {
+        // Driving camera is now in main view - move arrow there
+        if (forwardArrow) {
+          mainView.appendChild(forwardArrow);
+        }
+      } else {
+        // Driving camera is in secondary view - move arrow there
+        if (forwardArrow) {
+          secondaryView.appendChild(forwardArrow);
+        }
+      }
 
       updateSystemStatus('Camera feeds swapped');
     }
@@ -1310,7 +1741,10 @@
 
     function sendMovementCommand(direction) {
       let motor1 = 0, motor2 = 0, action = direction;
+<<<<<<< HEAD
 
+=======
+>>>>>>> b3eee6b (Updated ui)
       const baseSpeed = Math.round((currentSpeed / 100) * 80);
 
       switch(direction) {
@@ -1335,7 +1769,11 @@
           break;
       }
 
+<<<<<<< HEAD
       fetch(`http://192.168.8.103:8000/control`, {
+=======
+      fetch('http://192.168.8.103:8000/control', {
+>>>>>>> b3eee6b (Updated ui)
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1367,7 +1805,11 @@
       const action = direction === 'in' ? 'Zoom In' : 'Zoom Out';
       updateSystemStatus(`Camera ${action.toLowerCase()}`);
 
+<<<<<<< HEAD
       fetch(`http://192.168.8.103:8000/control`, {
+=======
+      fetch('http://192.168.8.103:8000/control', {
+>>>>>>> b3eee6b (Updated ui)
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1399,7 +1841,11 @@
     function toggleLED() {
       updateSystemStatus('LED state toggled');
 
+<<<<<<< HEAD
       fetch(`http://192.168.8.103:8000/control`, {
+=======
+      fetch('http://192.168.8.103:8000/control', {
+>>>>>>> b3eee6b (Updated ui)
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1412,6 +1858,7 @@
 
     function toggleMagnet() {
       updateSystemStatus('Magnet toggled');
+<<<<<<< HEAD
     }
 
     // Log panel movement functions
@@ -1429,6 +1876,8 @@
 
       document.getElementById('input-entry').textContent = inputContent;
       document.getElementById('system-entry').textContent = systemContent;
+=======
+>>>>>>> b3eee6b (Updated ui)
     }
 
     // Recordings management
@@ -1443,7 +1892,7 @@
         console.error('Error fetching recordings:', err);
         updateSystemStatus('Error fetching recordings');
         document.getElementById('recordings-list').innerHTML =
-          '<div style="text-align: center; color: var(--danger-color); padding: 20px;">Error loading recordings</div>';
+          '<div style="text-align: center; color: var(--danger-color); padding: 12px; font-size: 10px;">Error loading recordings</div>';
       }
     }
 
@@ -1452,7 +1901,7 @@
 
       if (recordings.length === 0) {
         recordingsList.innerHTML =
-          '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">No recordings found</div>';
+          '<div style="text-align: center; color: var(--text-secondary); padding: 12px; font-size: 10px;">No recordings found</div>';
         return;
       }
 
@@ -1686,26 +2135,18 @@
     }
 
     // System status logging
-    function updateSystemStatus(message, type = '') {
+    function updateSystemStatus(message) {
       const time = new Date().toTimeString().split(' ')[0];
-      const content = `> [${time}] ${message}`;
-
+      const content = `[${time}] ${message}`;
       document.getElementById('system-entry').textContent = content;
+<<<<<<< HEAD
 
       if (document.body.classList.contains('recordings-active')) {
         document.getElementById('temp-system-entry').textContent = content;
       }
+=======
+>>>>>>> b3eee6b (Updated ui)
     }
-
-    // Flash animation
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes flash {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-      }
-    `;
-    document.head.appendChild(style);
 
     // Fetch IMU data
     async function fetchIMUData() {
@@ -1735,10 +2176,6 @@
         }
       } catch (err) {
         console.error('IMU fetch error:', err);
-        document.getElementById('pitch').textContent = 'Connection error';
-        document.getElementById('roll').textContent = 'Connection error';
-        document.getElementById('yaw').textContent = 'Connection error';
-        document.getElementById('surface').textContent = 'Connection error';
       }
     }
 
@@ -1752,9 +2189,9 @@
           const action = data.action || 'idle';
           const m1 = data.motor1_speed || 0;
           const m2 = data.motor2_speed || 0;
-          const content = `> [${timestamp}] Action: ${action} | M1: ${m1} | M2: ${m2}`;
-
+          const content = `[${timestamp}] ${action} | M1: ${m1} | M2: ${m2}`;
           document.getElementById('input-entry').textContent = content;
+<<<<<<< HEAD
 
           if (document.body.classList.contains('recordings-active')) {
             document.getElementById('temp-input-entry').textContent = content;
@@ -1774,6 +2211,14 @@
 
     let lastAction = '';
 
+=======
+        }
+      } catch (err) {
+        console.error('Controller fetch error:', err);
+      }
+    }
+
+>>>>>>> b3eee6b (Updated ui)
     // Update data periodically
     setInterval(() => {
       fetchIMUData();
@@ -1805,7 +2250,7 @@
           move('right');
           break;
         case ' ':
-          e.preventDefault(); // Prevent page scroll
+          e.preventDefault();
           stopMovement();
           break;
         case 'q':
@@ -1832,6 +2277,64 @@
 
     // Initialize
     updateSystemStatus('System ready - DOOMSEEK online');
+
+    // Auto-scale text in resizable boxes
+    function autoScaleText() {
+      const controllerBox = document.querySelector('.controller-compact');
+      const imuBox = document.querySelector('.imu-compact');
+
+      // Scale controller box text
+      if (controllerBox) {
+        const width = controllerBox.offsetWidth;
+        const baseFontSize = Math.max(5, Math.min(12, width / 40)); // Scale between 5px and 12px
+        
+        const labels = controllerBox.querySelectorAll('.controller-label, .system-label');
+        const values = controllerBox.querySelectorAll('.controller-value, .system-value');
+        
+        labels.forEach(label => {
+          label.style.fontSize = `${baseFontSize}px`;
+        });
+        values.forEach(value => {
+          value.style.fontSize = `${baseFontSize}px`;
+        });
+      }
+
+      // Scale IMU box text
+      if (imuBox) {
+        const width = imuBox.offsetWidth;
+        const baseFontSize = Math.max(5, Math.min(10, width / 12)); // Scale between 5px and 10px
+        
+        const title = imuBox.querySelector('.imu-title');
+        const labels = imuBox.querySelectorAll('.imu-label');
+        const values = imuBox.querySelectorAll('.imu-value');
+        
+        if (title) {
+          title.style.fontSize = `${baseFontSize}px`;
+        }
+        labels.forEach(label => {
+          label.style.fontSize = `${baseFontSize}px`;
+        });
+        values.forEach(value => {
+          value.style.fontSize = `${baseFontSize}px`;
+        });
+      }
+    }
+
+    // Use ResizeObserver to detect size changes
+    if (typeof ResizeObserver !== 'undefined') {
+      const controllerBox = document.querySelector('.controller-compact');
+      const imuBox = document.querySelector('.imu-compact');
+
+      const resizeObserver = new ResizeObserver(entries => {
+        autoScaleText();
+      });
+
+      if (controllerBox) resizeObserver.observe(controllerBox);
+      if (imuBox) resizeObserver.observe(imuBox);
+    }
+
+    // Initial scaling
+    autoScaleText();
   </script>
 </body>
 </html>
