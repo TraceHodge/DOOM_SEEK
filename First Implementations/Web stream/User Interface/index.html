@@ -48,6 +48,7 @@
       left: 0;
       right: 0;
       z-index: 100;
+      gap: 15px;
     }
 
     .header-controls {
@@ -732,96 +733,6 @@
       background: #ff5555;
     }
 
-    /* Download Progress Modal */
-    #download-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-      backdrop-filter: blur(5px);
-    }
-
-    .download-modal-content {
-      background: var(--bg-secondary);
-      border: 2px solid var(--primary-color);
-      border-radius: 16px;
-      padding: 30px;
-      min-width: 400px;
-      box-shadow: 0 10px 40px rgba(0, 212, 255, 0.4);
-    }
-
-    .download-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .download-icon {
-      font-size: 32px;
-    }
-
-    .progress-container {
-      position: relative;
-      width: 100%;
-      height: 30px;
-      background: var(--bg-tertiary);
-      border-radius: 15px;
-      overflow: hidden;
-      margin-bottom: 15px;
-      border: 1px solid var(--border-color);
-    }
-
-    .progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-      width: 0%;
-      transition: width 0.3s ease;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
-    }
-
-    .progress-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-weight: 700;
-      font-size: 14px;
-      color: var(--text-primary);
-      text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
-    }
-
-    .download-stats {
-      display: flex;
-      justify-content: space-between;
-      font-size: 14px;
-      color: var(--text-secondary);
-      font-family: 'Courier New', monospace;
-    }
-
-    .download-stats span {
-      padding: 5px 10px;
-      background: var(--bg-tertiary);
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-    }
-
-    /* Flash animation */
-    @keyframes flash {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
     /* Scrollbar Styling */
     .controls-dropdown::-webkit-scrollbar {
       width: 5px;
@@ -840,12 +751,75 @@
     .controls-dropdown::-webkit-scrollbar-thumb:hover {
       background: #00b8e6;
     }
+
+    /* Download Progress Bar */
+    .download-progress-container {
+      display: none;
+      align-items: center;
+      padding: 7px 14px;
+      background: rgba(30, 36, 51, 0.95);
+      border: 1px solid var(--primary-color);
+      border-radius: 5px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+      min-width: 250px;
+      max-width: 350px;
+      height: 35px;
+      position: relative;
+      overflow: hidden;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .download-progress-container.active {
+      display: flex;
+    }
+
+    .download-progress-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      width: 0%;
+      transition: width 0.3s ease;
+      opacity: 0.35;
+      border-radius: 5px;
+    }
+
+    .download-progress-text {
+      position: relative;
+      z-index: 1;
+      color: white;
+      font-weight: 600;
+      font-size: 11px;
+      text-align: center;
+      width: 100%;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   </style>
-  <script src="https://unpkg.com/streamsaver@2.0.5/StreamSaver.min.js"></script>
 </head>
 <body>
   <!-- Header -->
   <div class="header">
+    <div style="flex: 1;"></div>
+    <div class="download-progress-container" id="download-progress">
+      <div class="download-progress-bg" id="download-progress-bg"></div>
+      <div class="download-progress-text" id="download-progress-text">Downloading... 0%</div>
+    </div>
     <div class="header-controls">
       <button class="emergency-stop" onclick="emergencyStop()">⚠ E-STOP</button>
       <button class="controls-toggle" onclick="toggleControls()">☰ CONTROLS</button>
@@ -1047,24 +1021,6 @@
             Loading recordings...
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Download Progress Modal -->
-  <div id="download-modal">
-    <div class="download-modal-content">
-      <div class="download-header">
-        <span class="download-icon">📥</span>
-        <span id="download-filename">Downloading...</span>
-      </div>
-      <div class="progress-container">
-        <div class="progress-bar" id="progress-bar"></div>
-        <div class="progress-text" id="progress-text">0%</div>
-      </div>
-      <div class="download-stats">
-        <span id="download-size">0 MB / 0 MB</span>
-        <span id="download-speed">0 MB/s</span>
       </div>
     </div>
   </div>
@@ -1623,119 +1579,62 @@
     async function downloadRecording(path) {
       try {
         const filename = path.split('/').pop() || 'recording.bin';
+        updateSystemStatus(`Downloading ${filename}...`);
         
+        // Show progress bar
         showDownloadProgress(filename);
         
-        const url = `http://192.168.8.103:8000/recordings/download/${encodeURIComponent(path)}`;
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
+        const response = await fetch(`http://192.168.8.103:8000/recordings/download/${encodeURIComponent(path)}`);
 
-        const contentLength = Number(resp.headers.get('Content-Length')) || undefined;
-        const totalMB = contentLength ? (contentLength / (1024 * 1024)).toFixed(2) : '?';
-
-        if (window.streamSaver && resp.body) {
-          const fileStream = streamSaver.createWriteStream(filename, { size: contentLength });
-          const writer = fileStream.getWriter();
-          const reader = resp.body.getReader();
-          let received = 0;
-          let lastUpdate = Date.now();
-          let lastReceived = 0;
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            await writer.write(value);
-            received += (value.byteLength || value.length || 0);
-            
-            const now = Date.now();
-            if (now - lastUpdate > 100) {
-              const speed = ((received - lastReceived) / (now - lastUpdate)) * 1000;
-              updateDownloadProgress(received, contentLength, speed);
-              lastUpdate = now;
-              lastReceived = received;
-            }
-          }
-
-          await writer.close();
-          hideDownloadProgress();
-          updateSystemStatus(`Downloaded ${filename} (${totalMB} MB)`);
-          return;
+        if (!response.ok) {
+          throw new Error('Download failed');
         }
 
-        if ('showSaveFilePicker' in window && resp.body) {
-          const handle = await window.showSaveFilePicker({ suggestedName: filename });
-          const writable = await handle.createWritable();
-          const reader = resp.body.getReader();
-          let received = 0;
-          let lastUpdate = Date.now();
-          let lastReceived = 0;
+        const contentLength = response.headers.get('Content-Length');
+        const total = contentLength ? parseInt(contentLength, 10) : 0;
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            await writable.write(value);
-            received += (value.byteLength || value.length || 0);
-            
-            const now = Date.now();
-            if (now - lastUpdate > 100) {
-              const speed = ((received - lastReceived) / (now - lastUpdate)) * 1000;
-              updateDownloadProgress(received, contentLength, speed);
-              lastUpdate = now;
-              lastReceived = received;
-            }
-          }
-
-          await writable.close();
-          hideDownloadProgress();
-          updateSystemStatus(`Downloaded ${filename} (${totalMB} MB)`);
-          return;
-        }
-
-        if (resp.body) {
-          const reader = resp.body.getReader();
+        // If we have content length, show progress
+        if (total > 0 && response.body) {
+          const reader = response.body.getReader();
           const chunks = [];
           let received = 0;
-          let lastUpdate = Date.now();
-          let lastReceived = 0;
 
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
+            
             chunks.push(value);
             received += value.length;
             
-            const now = Date.now();
-            if (now - lastUpdate > 100) {
-              const speed = ((received - lastReceived) / (now - lastUpdate)) * 1000;
-              updateDownloadProgress(received, contentLength, speed);
-              lastUpdate = now;
-              lastReceived = received;
-            }
+            // Update progress
+            const percentage = Math.round((received / total) * 100);
+            updateDownloadProgress(percentage);
           }
 
           const blob = new Blob(chunks);
-          const urlObj = URL.createObjectURL(blob);
+          const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
-          link.href = urlObj;
+          link.href = url;
           link.download = filename;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          URL.revokeObjectURL(urlObj);
+          URL.revokeObjectURL(url);
         } else {
-          const blob = await resp.blob();
-          const urlObj = URL.createObjectURL(blob);
+          // No content length, just download directly
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
-          link.href = urlObj;
+          link.href = url;
           link.download = filename;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          URL.revokeObjectURL(urlObj);
+          URL.revokeObjectURL(url);
         }
 
         hideDownloadProgress();
-        updateSystemStatus(`Downloaded ${filename} (${totalMB} MB)`);
+        updateSystemStatus(`Downloaded ${filename}`);
       } catch (err) {
         console.error('Download error:', err);
         hideDownloadProgress();
@@ -1744,48 +1643,39 @@
     }
 
     function showDownloadProgress(filename) {
-      if (!document.getElementById('download-modal')) {
-        const modal = document.createElement('div');
-        modal.id = 'download-modal';
-        modal.innerHTML = `
-          <div class="download-modal-content">
-            <div class="download-header">
-              <span class="download-icon">📥</span>
-              <span id="download-filename">Downloading...</span>
-            </div>
-            <div class="progress-container">
-              <div class="progress-bar" id="progress-bar"></div>
-              <div class="progress-text" id="progress-text">0%</div>
-            </div>
-            <div class="download-stats">
-              <span id="download-size">0 MB / 0 MB</span>
-              <span id="download-speed">0 MB/s</span>
-            </div>
-          </div>
-        `;
-        document.body.appendChild(modal);
+      const container = document.getElementById('download-progress');
+      const text = document.getElementById('download-progress-text');
+      const bg = document.getElementById('download-progress-bg');
+      if (container && text && bg) {
+        bg.style.width = '0%';
+        bg.style.background = 'linear-gradient(90deg, var(--primary-color), var(--secondary-color))';
+        text.textContent = '📥 0%';
+        container.classList.add('active');
       }
-      
-      document.getElementById('download-filename').textContent = filename;
-      document.getElementById('download-modal').style.display = 'flex';
     }
 
-    function updateDownloadProgress(received, total, speed) {
-      const percentage = total ? (received / total * 100).toFixed(1) : 0;
-      const receivedMB = (received / (1024 * 1024)).toFixed(2);
-      const totalMB = total ? (total / (1024 * 1024)).toFixed(2) : '?';
-      const speedMBs = (speed / (1024 * 1024)).toFixed(2);
-      
-      document.getElementById('progress-bar').style.width = `${percentage}%`;
-      document.getElementById('progress-text').textContent = `${percentage}%`;
-      document.getElementById('download-size').textContent = `${receivedMB} MB / ${totalMB} MB`;
-      document.getElementById('download-speed').textContent = `${speedMBs} MB/s`;
+    function updateDownloadProgress(percentage) {
+      const bg = document.getElementById('download-progress-bg');
+      const text = document.getElementById('download-progress-text');
+      if (bg && text) {
+        bg.style.width = `${percentage}%`;
+        text.textContent = `📥 ${percentage}%`;
+      }
     }
 
     function hideDownloadProgress() {
-      const modal = document.getElementById('download-modal');
-      if (modal) {
-        modal.style.display = 'none';
+      const container = document.getElementById('download-progress');
+      const text = document.getElementById('download-progress-text');
+      const bg = document.getElementById('download-progress-bg');
+      if (container && text && bg) {
+        // Show completion with success color
+        bg.style.width = '100%';
+        bg.style.background = 'var(--success-color)';
+        text.textContent = '✓ Complete';
+        
+        setTimeout(() => {
+          container.classList.remove('active');
+        }, 1500); // Keep visible for 1.5 seconds after completion
       }
     }
 
