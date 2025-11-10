@@ -4,9 +4,6 @@ from pydantic import BaseModel
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 import serial, struct, sys, asyncio, datetime
-import board
-import neopixel
-import neopixel
 import cv2
 import os
 import glob
@@ -38,12 +35,7 @@ class MotorControl(BaseModel):
     motor2_speed: int
     action: str
 
-# Num_Pixels is the number of pixels in the LED strip
-# The LED strip is connected to GPIO pin 24
-# pixels is the object that controls the LED strip
-NUM_PIXELS = 42    # Change this to match your LED count
-PIXEL_PIN = board.D24   # Data line (GPIO 24)
-pixels = neopixel.NeoPixel(PIXEL_PIN, NUM_PIXELS, brightness=0.7, auto_write=True)
+
 
 latest_control_input = {
     "timestamp": None,
@@ -94,14 +86,12 @@ async def control_motors(data: MotorControl):
                 print("Failed to grab frame!")
         cap.release()
         
-    elif data.action == "Led On":
-        pixels.fill((255, 255, 255))  # White LED
+    
     elif data.action == "Zoom In":
         camA_zoom_in()
     elif data.action == "Zoom Out":
         camA_zoom_out()
-    elif data.action == "Led Off":
-        pixels.fill((0, 0, 0))  # Turn off LED
+    
     else:
         send_packatized_command(128, 0, 0)
         send_packatized_command(128, 4, 0)
@@ -152,7 +142,7 @@ wall_calibration = {
 def get_wall_label(yaw, current_surface):
     """
     Label walls as A, B, C, D based on starting position.
-    Wall A = starting wall
+    Wall A = starting wall (basic input)
     Wall B = 90° clockwise from A
     Wall C = opposite of A
     Wall D = 90° counter-clockwise from A
@@ -223,6 +213,7 @@ latest_imu_data = {
     "yaw": None  # Track raw yaw for debugging
 }
 #app.get("/imu") returns the latest IMU data to the UI
+#get fetch request for setting start position
 @app.get("/imu")
 async def get_imu():
     data = latest_imu_data.copy()
@@ -230,6 +221,7 @@ async def get_imu():
     return JSONResponse(content=data)
 
 # def imu_loop reads data from the IMU sensor and updates the latest IMU data
+
 async def imu_loop():
     try:
         print("Attempting to open serial port /dev/ttyAMA2...")
