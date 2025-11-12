@@ -16,10 +16,10 @@ logFile: mediamtx.log
 # Timeout of read operations.
 readTimeout: 10s
 # Timeout of write operations.
-writeTimeout: 10s
+writeTimeout: 5s
 # Size of the queue of outgoing packets.
 # A higher value allows to increase throughput, a lower value allows to save RAM.
-writeQueueSize: 512
+writeQueueSize: 2048
 # Maximum size of outgoing UDP packets.
 # This can be decreased to avoid fragmentation on networks with a low UDP MTU.
 udpMaxPayloadSize: 1472
@@ -280,7 +280,7 @@ rtmpServerCert: server.crt
 # Global settings -> HLS server
 
 # Enable reading streams with the HLS protocol.
-hls: yes
+hls: no
 # Address of the HLS listener.
 hlsAddress: :8888
 # Enable TLS/HTTPS on the HLS server.
