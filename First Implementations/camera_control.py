@@ -13,8 +13,8 @@ def start_camB():
        "ffmpeg -f v4l2 -input_format h264 -framerate 30 -video_size 1920x1080 "
         "-i /dev/video2 "
         "-c:v copy -an -fflags nobuffer -flags low_delay "
-        "-b:v 8M -maxrate 10M -bufsize 8M "
-        "-f rtsp -rtsp_transport tcp rtsp://localhost:8554/webrtc/camB "
+        "-b:v 10M -maxrate 10M -bufsize 10M "
+        "-f rtsp rtsp://localhost:8554/webrtc/camB "
         "> logs/camB.log 2>&1 &"
     )
     os.system(cmd)
@@ -26,8 +26,8 @@ def start_camA():
         "ffmpeg -f v4l2 -input_format h264 -framerate 30 -video_size 1920x1080 "
         "-i /dev/video0 "
         "-c:v copy -an -fflags nobuffer -flags low_delay "
-        "-b:v 8M -maxrate 10M -bufsize 8M "
-        "-f rtsp -rtsp_transport tcp rtsp://localhost:8554/webrtc/camA "
+        "-b:v 10M -maxrate 10M -bufsize 10M "
+        "-f rtsp rtsp://localhost:8554/webrtc/camA "
         "> logs/camA.log 2>&1 &"
     )
     os.system(cmd)
