@@ -9,7 +9,7 @@ def main():
     import requests
     import time
 
-    SERVER_URL = "http://192.168.1.2:8000/control"
+    SERVER_URL = "http://192.168.8.104:8000/control"
 
     pygame.init()
     pygame.joystick.init()
@@ -88,20 +88,6 @@ def main():
                     if joystick.get_button(12):
                         base_speed = max(base_speed - 5, min_speed)
                         print(f"Speed decreased: {base_speed}")
-                    if joystick.get_button(0):
-                        led_state = "Led On" if led_state == "Led Off" else "Led Off"
-                        print(f"LED State Changed: {led_state}")
-                        data = {
-                            "motor1_speed": 0,
-                            "motor2_speed": 0,
-                            "action": led_state
-                        }
-                        try:
-                            response = requests.post(SERVER_URL, json=data)
-                            if response.status_code != 200:
-                                print(f"Failed to send LED command: {response.status_code}")
-                        except requests.exceptions.RequestException as e:
-                            print(f"Error sending LED command: {e}")
                     if joystick.get_button(1):
                         print("Picture button pressed!")
                         data = {

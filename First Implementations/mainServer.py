@@ -8,6 +8,8 @@ import cv2
 import os
 import glob
 import shutil
+import subprocess
+import re
 from camera_control import camA_zoom_in,camB_zoom_in,camA_zoom_out,camB_zoom_out
 
 app = FastAPI()
@@ -55,17 +57,17 @@ async def control_motors(data: MotorControl):
     latest_control_input["motor2_speed"] = data.motor2_speed
 
     if data.action == "forward":
-        send_packatized_command(128, 0, data.motor1_speed)
-        send_packatized_command(128, 4, data.motor2_speed)
+        send_packatized_command(128, 1, data.motor1_speed)
+        send_packatized_command(128, 5, data.motor2_speed)
     elif data.action == "reverse":
-        send_packatized_command(128, 1, data.motor1_speed)
-        send_packatized_command(128, 5, data.motor2_speed)
-    elif data.action == "Turning Right":
         send_packatized_command(128, 0, data.motor1_speed)
-        send_packatized_command(128, 5, data.motor2_speed)
-    elif data.action == "Turning Left":
+        send_packatized_command(128, 4, data.motor2_speed)
+    elif data.action == "Turning Right":
         send_packatized_command(128, 1, data.motor1_speed)
         send_packatized_command(128, 4, data.motor2_speed)
+    elif data.action == "Turning Left":
+        send_packatized_command(128, 0, data.motor1_speed)
+        send_packatized_command(128, 5, data.motor2_speed)
     elif data.action == "Take Picture": # Take picture uses openCV to capture a frame from the stream
         # Your streaming URL
         STREAM_URL = "rtsp://localhost:8554/webrtc/camB"  # Change cam depending on the camera you want to use
@@ -132,85 +134,23 @@ def parse_data(packet):
         return None, None
     return packet[1], struct.unpack('<hhhh', packet[2:10])
 
-# Wall labeling system - calibrated at startup
-wall_calibration = {
-    "reference_yaw": None,  # Yaw angle when starting at Wall A
-    "reference_surface": None,  # Which surface type is Wall A
-    "is_calibrated": False
-}
+def direction(yaw):
+    dirs = ["North", "NE", "East", "SE", "South", "SW", "West", "NW"]
+    return dirs[int((yaw + 22.5) % 360 // 45)]
 
-def get_wall_label(yaw, current_surface):
-    """
-    Label walls as A, B, C, D based on starting position.
-    Wall A = starting wall (basic input)
-    Wall B = 90° clockwise from A
-    Wall C = opposite of A
-    Wall D = 90° counter-clockwise from A
-    """
-    if not wall_calibration["is_calibrated"]:
-        return "Calibrating..."
-
-    # Only label actual walls, not floor/ceiling
-    if current_surface not in ["Left Wall", "Right Wall", "Front Wall", "Back Wall"]:
-        return current_surface
-
-    # Calculate relative angle from starting position
-    ref_yaw = wall_calibration["reference_yaw"]
-    angle_diff = (yaw - ref_yaw) % 360
-
-    # Determine which wall based on rotation
-    # 0° = Wall A, 90° = Wall B, 180° = Wall C, 270° = Wall D
-    if angle_diff < 45 or angle_diff >= 315:
-        return "Wall A"
-    elif 45 <= angle_diff < 135:
-        return "Wall B"
-    elif 135 <= angle_diff < 225:
-        return "Wall C"
-    else:
-        return "Wall D"
-
-def surface(pitch, roll, accel=None):
-    """
-    Enhanced surface detection using gravity vector from accelerometer.
-    The accelerometer measures gravity direction - this tells us which surface we're on.
-
-    Gravity components:
-    - Z-axis negative (az < -0.7): Gravity pulling down → Floor
-    - Z-axis positive (az > 0.7): Gravity pulling up → Ceiling
-    - X-axis negative (ax < -0.7): Gravity pulling left → Left Wall
-    - X-axis positive (ax > 0.7): Gravity pulling right → Right Wall
-    - Y-axis negative (ay < -0.7): Gravity pulling forward → Front Wall
-    - Y-axis positive (ay > 0.7): Gravity pulling backward → Back Wall
-    """
-    if accel:
-        ax, ay, az = accel
-
-        # Use accelerometer to detect gravity direction (most accurate)
-        # Threshold of 0.7g means axis is within ~45° of vertical
-        if abs(az) > 0.7:
-            return "Floor" if az < 0 else "Ceiling"
-        elif abs(ax) > 0.7:
-            return "Left Wall" if ax < 0 else "Right Wall"
-        elif abs(ay) > 0.7:
-            return "Front Wall" if ay < 0 else "Back Wall"
-        else:
-            # Transitioning between surfaces or at an angle
-            return "Transitioning"
-
-    # Fallback to pitch/roll if no accelerometer data
+def surface(pitch, roll):
     if abs(pitch) < 45 and abs(roll) < 45:
-        return "Floor"
-    elif abs(pitch) > 135 or abs(roll) > 135:
         return "Ceiling"
+    elif abs(pitch) > 135 or abs(roll) > 135:
+        return "Floor"
     return "Wall"
 
 latest_imu_data = {
     "timestamp": None,
-    "location": "N/A",  # Changed from "facing" - now shows Wall A/B/C/D or Floor/Ceiling
+    "facing": "N/A",
     "surface": "N/A",
     "accel": None,
-    "gyro": None,
-    "yaw": None  # Track raw yaw for debugging
+    "gyro": None
 }
 #app.get("/imu") returns the latest IMU data to the UI
 #get fetch request for setting start position
@@ -218,18 +158,27 @@ latest_imu_data = {
 async def get_imu():
     data = latest_imu_data.copy()
     data["input"] = latest_control_input.get("input")
+    # Add debug info
+    if not data.get("timestamp"):
+        data["status"] = "No IMU data received yet"
     return JSONResponse(content=data)
 
 # def imu_loop reads data from the IMU sensor and updates the latest IMU data
 
 async def imu_loop():
     try:
+        print("=" * 60)
+        print("STARTING IMU LOOP")
+        print("=" * 60)
         print("Attempting to open serial port /dev/ttyAMA2...")
         imu = serial.Serial("/dev/ttyAMA2", 115200, timeout=0.1)
         imu.flushInput()
-        print("IMU Serial connection established on /dev/ttyAMA2")
+        print("✅ IMU Serial connection established on /dev/ttyAMA2")
+        print("Waiting for data packets...")
     except Exception as e:
-        print(f"Failed to open IMU serial port: {e}")
+        print("=" * 60)
+        print(f"❌ Failed to open IMU serial port: {e}")
+        print("=" * 60)
         return
 
     roll = pitch = yaw = 0.0
@@ -243,42 +192,31 @@ async def imu_loop():
                 if not data_type:
                     continue
                 #0x51 is the accelerometer data address
-                # ![](./docs/Acceleration0x51.png)
                 if data_type == 0x51:
                     accel = tuple(v / 32768.0 * 16.0 for v in values[:3])
 
-                #0x52 is the accelerometer data address
-                # ![](./docs/AngularVelocity0x52.png)
+                #0x52 is the angular velocity data address
                 elif data_type == 0x52:
                     gyro = tuple(v / 32768.0 * 2000.0 for v in values[:3])
 
                 #0x53 is the Euler angles data address
-                # ![](./docs/Angle0x53.png)
                 elif data_type == 0x53:
                     roll = values[0] / 32768.0 * 180.0
                     pitch = values[1] / 32768.0 * 180.0
                     yaw = values[2] / 32768.0 * 180.0
 
                     timestamp = datetime.datetime.now().strftime('%H:%M:%S')
-                    surf = surface(pitch, roll, accel)  # Get surface type
-                    location = get_wall_label(yaw, surf)  # Convert to Wall A/B/C/D
-
-                    # Auto-calibrate on first wall detection
-                    if not wall_calibration["is_calibrated"] and "Wall" in surf:
-                        wall_calibration["reference_yaw"] = yaw
-                        wall_calibration["reference_surface"] = surf
-                        wall_calibration["is_calibrated"] = True
-                        print(f"✓ Calibrated! Starting wall set as Wall A at yaw={yaw:.1f}°")
+                    facing = direction(yaw)
+                    surf = surface(pitch, roll)
 
                     latest_imu_data.update({
                         "timestamp": timestamp,
-                        "location": location,
+                        "facing": facing,
                         "surface": surf,
                         "accel": accel,
-                        "gyro": gyro,
-                        "yaw": yaw
+                        "gyro": gyro
                     })
-                    print(f"[{timestamp}] Location: {location} | Surface: {surf}")
+                    print(f"[{timestamp}] Facing: {facing} | Surface: {surf}")
             await asyncio.sleep(0)
     except Exception as e:
         print(f"IMU error: {e}")
@@ -318,23 +256,134 @@ async def list_recordings():
 
 @app.get("/recordings/download/{path:path}")
 async def download_recording(path: str):
-    """Download a specific recording file"""
+    """Download a specific recording file with optimized chunk size"""
     try:
         file_path = os.path.join("./recordings", path)
 
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Recording not found")
 
+        # Get file size for Content-Length header
+        file_size = os.path.getsize(file_path)
+
         def file_generator():
             with open(file_path, "rb") as file:
-                while chunk := file.read(8192):
+                # Increased chunk size from 8KB to 256KB for faster downloads
+                while chunk := file.read(262144):  # 256KB chunks
                     yield chunk
 
         return StreamingResponse(
             file_generator(),
             media_type="application/octet-stream",
-            headers={"Content-Disposition": f"attachment; filename={os.path.basename(file_path)}"}
+            headers={
+                "Content-Disposition": f"attachment; filename={os.path.basename(file_path)}",
+                "Content-Length": str(file_size),
+                "Cache-Control": "public, max-age=3600",
+                "Accept-Ranges": "bytes"
+            }
         )
+
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Recording not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error downloading recording: {str(e)}")
+
+@app.head("/recordings/fast-download/{path:path}")
+async def head_fast_download_recording(path: str):
+    """HEAD request for file info to support parallel downloads"""
+    try:
+        file_path = os.path.join("./recordings", path)
+
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Recording not found")
+
+        file_size = os.path.getsize(file_path)
+
+        return JSONResponse(
+            content=None,
+            headers={
+                "Content-Length": str(file_size),
+                "Accept-Ranges": "bytes",
+                "Content-Type": "application/octet-stream",
+                "Cache-Control": "public, max-age=3600"
+            }
+        )
+
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Recording not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting file info: {str(e)}")
+
+@app.get("/recordings/fast-download/{path:path}")
+async def fast_download_recording(path: str, request: Request):
+    """Optimized download endpoint with range request support for faster downloads"""
+    try:
+        file_path = os.path.join("./recordings", path)
+
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Recording not found")
+
+        file_size = os.path.getsize(file_path)
+
+        # Check for range request
+        range_header = request.headers.get('range')
+
+        if range_header:
+            # Parse range header (e.g., "bytes=0-1023")
+            range_match = range_header.replace('bytes=', '').split('-')
+            start = int(range_match[0]) if range_match[0] else 0
+            end = int(range_match[1]) if range_match[1] else file_size - 1
+
+            # Ensure valid range
+            if start >= file_size or end >= file_size:
+                raise HTTPException(status_code=416, detail="Range Not Satisfiable")
+
+            def range_generator():
+                with open(file_path, "rb") as file:
+                    file.seek(start)
+                    remaining = end - start + 1
+                    chunk_size = 524288  # 512KB chunks for range requests
+
+                    while remaining > 0:
+                        to_read = min(chunk_size, remaining)
+                        chunk = file.read(to_read)
+                        if not chunk:
+                            break
+                        remaining -= len(chunk)
+                        yield chunk
+
+            headers = {
+                "Content-Range": f"bytes {start}-{end}/{file_size}",
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(end - start + 1),
+                "Content-Disposition": f"attachment; filename={os.path.basename(file_path)}",
+                "Cache-Control": "public, max-age=3600"
+            }
+
+            return StreamingResponse(
+                range_generator(),
+                status_code=206,  # Partial Content
+                media_type="application/octet-stream",
+                headers=headers
+            )
+        else:
+            # Regular full file download with optimizations
+            def fast_file_generator():
+                with open(file_path, "rb") as file:
+                    # Use 512KB chunks for optimal performance
+                    while chunk := file.read(524288):
+                        yield chunk
+
+            return StreamingResponse(
+                fast_file_generator(),
+                media_type="application/octet-stream",
+                headers={
+                    "Content-Disposition": f"attachment; filename={os.path.basename(file_path)}",
+                    "Content-Length": str(file_size),
+                    "Accept-Ranges": "bytes",
+                    "Cache-Control": "public, max-age=3600"
+                }
+            )
 
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Recording not found")
@@ -380,6 +429,75 @@ async def cleanup_old_recordings():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error during cleanup: {str(e)}")
+
+def get_wifi_signal_strength():
+    """Get WiFi signal strength as a percentage (0-100)"""
+    try:
+        # Try using iw (more modern and reliable)
+        result = subprocess.run(['iw', 'dev', 'wlan0', 'link'],
+                              capture_output=True, text=True, timeout=2)
+
+        if result.returncode == 0:
+            # Look for signal strength in dBm
+            match = re.search(r'signal:\s*(-?\d+)\s*dBm', result.stdout)
+            if match:
+                dbm = int(match.group(1))
+                # Convert dBm to percentage (typical range: -90 to -30 dBm)
+                # -30 dBm = 100%, -90 dBm = 0%
+                percentage = min(100, max(0, 2 * (dbm + 100)))
+
+                # Get SSID
+                ssid_match = re.search(r'SSID:\s*(.+)', result.stdout)
+                ssid = ssid_match.group(1).strip() if ssid_match else "Unknown"
+
+                return {
+                    "connected": True,
+                    "signal_strength": percentage,
+                    "signal_dbm": dbm,
+                    "ssid": ssid
+                }
+
+        # Fallback to iwconfig
+        result = subprocess.run(['iwconfig', 'wlan0'],
+                              capture_output=True, text=True, timeout=2)
+
+        if result.returncode == 0:
+            # Look for Link Quality
+            match = re.search(r'Link Quality=(\d+)/(\d+)', result.stdout)
+            if match:
+                quality = int(match.group(1))
+                max_quality = int(match.group(2))
+                percentage = int((quality / max_quality) * 100)
+
+                # Get SSID
+                ssid_match = re.search(r'ESSID:"(.+?)"', result.stdout)
+                ssid = ssid_match.group(1) if ssid_match else "Unknown"
+
+                return {
+                    "connected": True,
+                    "signal_strength": percentage,
+                    "ssid": ssid
+                }
+
+        # Not connected or interface not found
+        return {
+            "connected": False,
+            "signal_strength": 0,
+            "ssid": None
+        }
+
+    except subprocess.TimeoutExpired:
+        return {"connected": False, "signal_strength": 0, "ssid": None, "error": "Timeout"}
+    except FileNotFoundError:
+        # Commands not available (likely not on Linux)
+        return {"connected": False, "signal_strength": 0, "ssid": None, "error": "WiFi tools not available"}
+    except Exception as e:
+        return {"connected": False, "signal_strength": 0, "ssid": None, "error": str(e)}
+
+@app.get("/wifi")
+async def get_wifi_status():
+    """Get current WiFi connection status and signal strength"""
+    return JSONResponse(content=get_wifi_signal_strength())
 
 @app.on_event("startup")
 async def startup_event():

@@ -3,3 +3,6 @@
   - 3-D Print for the entire Chassis
   - Discussion with Electric Distribution Centers
   - PASS THE CLASS
+  ------------------------------------------------------------------------------------------------------------
+  - Terminal network connection sudo nmcli device wifi connect "network id" password "network password"
+  - In pi terminal for WIfi on boot run | sudo nmcli connection modify "Network Id" connection.autoconnect yes

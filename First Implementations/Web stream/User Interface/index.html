@@ -175,6 +175,115 @@
       letter-spacing: 0.5px;
     }
 
+    /* WiFi Indicator */
+    .wifi-indicator {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      margin-left: 6px;
+      padding-left: 6px;
+      border-left: 1px solid rgba(0, 212, 255, 0.3);
+    }
+
+    .wifi-icon {
+      width: 12px;
+      height: 12px;
+      color: var(--primary-color);
+      transition: color 0.3s;
+    }
+
+    .wifi-percentage {
+      font-size: 8px;
+      font-weight: 700;
+      color: var(--primary-color);
+      letter-spacing: 0.3px;
+      min-width: 22px;
+      text-align: right;
+    }
+
+    /* WiFi signal strength colors */
+    .wifi-indicator.excellent .wifi-icon,
+    .wifi-indicator.excellent .wifi-percentage {
+      color: var(--success-color);
+    }
+
+    .wifi-indicator.good .wifi-icon,
+    .wifi-indicator.good .wifi-percentage {
+      color: var(--primary-color);
+    }
+
+    .wifi-indicator.fair .wifi-icon,
+    .wifi-indicator.fair .wifi-percentage {
+      color: var(--warning-color);
+    }
+
+    .wifi-indicator.poor .wifi-icon,
+    .wifi-indicator.poor .wifi-percentage {
+      color: var(--danger-color);
+    }
+
+    .wifi-indicator.disconnected .wifi-icon,
+    .wifi-indicator.disconnected .wifi-percentage {
+      color: var(--text-secondary);
+      opacity: 0.5;
+    }
+
+    /* WiFi arc animations based on signal strength */
+    .wifi-indicator.poor .wifi-arc-2,
+    .wifi-indicator.poor .wifi-arc-3 {
+      opacity: 0.2;
+    }
+
+    .wifi-indicator.fair .wifi-arc-3 {
+      opacity: 0.3;
+    }
+
+    .wifi-indicator.disconnected .wifi-arc {
+      opacity: 0.2;
+    }
+
+    /* IMU Calibrate Button */
+    .imu-calibrate-btn {
+      position: absolute;
+      top: 45px;
+      left: 12px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 10;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .imu-calibrate-btn:hover {
+      background: rgba(0, 212, 255, 0.2);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
+    }
+
+    .imu-calibrate-btn:active {
+      transform: translateY(0);
+    }
+
+    .imu-calibrate-btn.calibrating {
+      background: rgba(255, 193, 7, 0.2);
+      border-color: #ffc107;
+      color: #ffc107;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
     .recording-indicator {
       position: absolute;
       top: 12px;
@@ -765,7 +874,11 @@
       min-width: 250px;
       max-width: 350px;
       height: 35px;
-      position: relative;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 150;
       overflow: hidden;
       animation: slideIn 0.3s ease;
     }
@@ -773,11 +886,11 @@
     @keyframes slideIn {
       from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateX(-50%) translateY(-10px);
       }
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(-50%) translateY(0);
       }
     }
 
@@ -813,13 +926,15 @@
   </style>
 </head>
 <body>
+  <!-- Download Progress Bar (positioned at top center) -->
+  <div class="download-progress-container" id="download-progress">
+    <div class="download-progress-bg" id="download-progress-bg"></div>
+    <div class="download-progress-text" id="download-progress-text">Downloading... 0%</div>
+  </div>
+
   <!-- Header -->
   <div class="header">
     <div style="flex: 1;"></div>
-    <div class="download-progress-container" id="download-progress">
-      <div class="download-progress-bg" id="download-progress-bg"></div>
-      <div class="download-progress-text" id="download-progress-text">Downloading... 0%</div>
-    </div>
     <div class="header-controls">
       <button class="emergency-stop" onclick="emergencyStop()">⚠ E-STOP</button>
       <button class="controls-toggle" onclick="toggleControls()">☰ CONTROLS</button>
@@ -829,7 +944,7 @@
   <!-- Full Background Camera -->
   <div class="camera-background">
     <div class="camera-view" id="main-camera-view">
-      <iframe src="http://192.168.8.103:8889/webrtc/camB" id="main-iframe"></iframe>
+      <iframe src="http://192.168.8.104:8889/webrtc/camB" id="main-iframe"></iframe>
       <div class="camera-label" id="main-cam-label">
         <span>Inspection Camera</span>
         <div class="camera-label-separator"></div>
@@ -838,6 +953,15 @@
             <img src="86fa564b-cb9d-4137-98f3-51caed427677.jfif" alt="DOOMSEEK">
           </div>
           <span class="doomseek-badge-text">DOOMSEEK</span>
+        </div>
+        <div class="wifi-indicator" id="wifi-indicator">
+          <svg class="wifi-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path class="wifi-arc wifi-arc-1" d="M1 10C5.5 5.5 13 3 17 3C21 3 24 4.5 23 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path class="wifi-arc wifi-arc-2" d="M5 14C7.5 11.5 11 10 14 10C17 10 19 11 19 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path class="wifi-arc wifi-arc-3" d="M9 18C10.5 16.5 12 16 13 16C14 16 15 16.5 15 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle class="wifi-dot" cx="12" cy="20" r="1.5" fill="currentColor"/>
+          </svg>
+          <span class="wifi-percentage" id="wifi-percentage">--</span>
         </div>
       </div>
       <div class="recording-indicator" id="main-recording">
@@ -850,7 +974,7 @@
   <!-- Small Secondary Camera Overlay (Bottom Left) -->
   <div class="secondary-camera-overlay">
     <div class="camera-view">
-      <iframe src="http://192.168.8.103:8889/webrtc/camA" id="secondary-iframe"></iframe>
+      <iframe src="http://192.168.8.104:8889/webrtc/camA" id="secondary-iframe"></iframe>
     </div>
     <div class="camera-label" id="secondary-cam-label">Driving Camera</div>
     <div class="recording-indicator" id="secondary-recording">
@@ -1127,7 +1251,7 @@
         if (video && video.captureStream) {
           stream = video.captureStream();
         } else {
-          const response = await fetch('http://192.168.8.103:8000/proxy-record', {
+          const response = await fetch('http://192.168.8.104:8000/proxy-record', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1253,7 +1377,7 @@
         let video = document.getElementById(`hidden-${camera}-video`);
         
         if (!video || !video.videoWidth) {
-          const response = await fetch('http://192.168.8.103:8000/proxy-snapshot', {
+          const response = await fetch('http://192.168.8.104:8000/proxy-snapshot', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1453,7 +1577,7 @@
           break;
       }
 
-      fetch('http://192.168.8.103:8000/control', {
+      fetch('http://192.168.8.104:8000/control', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1485,7 +1609,7 @@
       const action = direction === 'in' ? 'Zoom In' : 'Zoom Out';
       updateSystemStatus(`Camera ${action.toLowerCase()}`);
 
-      fetch('http://192.168.8.103:8000/control', {
+      fetch('http://192.168.8.104:8000/control', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1517,7 +1641,7 @@
     function toggleLED() {
       updateSystemStatus('LED state toggled');
 
-      fetch('http://192.168.8.103:8000/control', {
+      fetch('http://192.168.8.104:8000/control', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1536,7 +1660,7 @@
     async function refreshRecordings() {
       updateSystemStatus('Refreshing recordings list...');
       try {
-        const response = await fetch('http://192.168.8.103:8000/recordings');
+        const response = await fetch('http://192.168.8.104:8000/recordings');
         const data = await response.json();
         displayRecordings(data.recordings);
         updateSystemStatus(`Found ${data.recordings.length} recordings`);
@@ -1564,7 +1688,7 @@
             ${recording.size_mb} MB • ${new Date(recording.modified).toLocaleString()}
           </div>
           <div class="recording-actions">
-            <button class="recording-btn" onclick="downloadRecording('${recording.path}')">
+            <button class="recording-btn" onclick="parallelDownloadRecording('${recording.path}')">
               📥 Download
             </button>
             <button class="recording-btn delete" onclick="deleteRecording('${recording.path}')">
@@ -1575,16 +1699,17 @@
       `).join('');
     }
 
-    // Enhanced download function with progress bar
+    // Optimized download function with faster streaming and progress bar
     async function downloadRecording(path) {
       try {
         const filename = path.split('/').pop() || 'recording.bin';
         updateSystemStatus(`Downloading ${filename}...`);
-        
+
         // Show progress bar
         showDownloadProgress(filename);
-        
-        const response = await fetch(`http://192.168.8.103:8000/recordings/download/${encodeURIComponent(path)}`);
+
+        const startTime = performance.now();
+        const response = await fetch(`http://192.168.8.104:8000/recordings/download/${encodeURIComponent(path)}`);
 
         if (!response.ok) {
           throw new Error('Download failed');
@@ -1593,25 +1718,53 @@
         const contentLength = response.headers.get('Content-Length');
         const total = contentLength ? parseInt(contentLength, 10) : 0;
 
-        // If we have content length, show progress
+        // Optimized download with larger buffer and speed tracking
         if (total > 0 && response.body) {
           const reader = response.body.getReader();
           const chunks = [];
           let received = 0;
+          let lastUpdateTime = startTime;
+          let lastReceived = 0;
+
+          // Use larger buffer for better performance
+          const bufferSize = 1024 * 1024; // 1MB buffer
 
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
-            
+
             chunks.push(value);
             received += value.length;
-            
-            // Update progress
-            const percentage = Math.round((received / total) * 100);
-            updateDownloadProgress(percentage);
+
+            // Update progress with throttling to avoid excessive updates
+            const now = performance.now();
+            if (now - lastUpdateTime > 100) { // Update every 100ms
+              const percentage = Math.round((received / total) * 100);
+
+              // Calculate download speed
+              const timeDiff = (now - lastUpdateTime) / 1000; // seconds
+              const bytesDiff = received - lastReceived;
+              const speed = bytesDiff / timeDiff; // bytes per second
+              const speedMB = (speed / (1024 * 1024)).toFixed(2);
+
+              updateDownloadProgressWithSpeed(percentage, speedMB);
+              lastUpdateTime = now;
+              lastReceived = received;
+            }
           }
 
-          const blob = new Blob(chunks);
+          // Final update
+          updateDownloadProgress(100);
+
+          // Create blob more efficiently
+          const blob = new Blob(chunks, { type: 'application/octet-stream' });
+
+          // Calculate final stats
+          const totalTime = (performance.now() - startTime) / 1000;
+          const avgSpeed = ((total / (1024 * 1024)) / totalTime).toFixed(2);
+          console.log(`Download completed: ${(total / (1024 * 1024)).toFixed(2)}MB in ${totalTime.toFixed(2)}s (${avgSpeed}MB/s)`);
+
+          // Trigger download
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
@@ -1619,9 +1772,11 @@
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          URL.revokeObjectURL(url);
+
+          // Clean up immediately
+          setTimeout(() => URL.revokeObjectURL(url), 100);
         } else {
-          // No content length, just download directly
+          // No content length, use optimized blob download
           const blob = await response.blob();
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
@@ -1630,7 +1785,7 @@
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          URL.revokeObjectURL(url);
+          setTimeout(() => URL.revokeObjectURL(url), 100);
         }
 
         hideDownloadProgress();
@@ -1638,7 +1793,127 @@
       } catch (err) {
         console.error('Download error:', err);
         hideDownloadProgress();
-        updateSystemStatus(`Error downloading ${path}`);
+        updateSystemStatus(`Error downloading: ${err.message}`);
+      }
+    }
+
+    // New function to update progress with speed information
+    function updateDownloadProgressWithSpeed(percentage, speedMB) {
+      const bg = document.getElementById('download-progress-bg');
+      const text = document.getElementById('download-progress-text');
+      if (bg && text) {
+        bg.style.width = `${percentage}%`;
+        text.textContent = `📥 ${percentage}% • ${speedMB}MB/s`;
+      }
+    }
+
+    // Ultra-fast parallel download function using range requests
+    async function parallelDownloadRecording(path) {
+      try {
+        const filename = path.split('/').pop() || 'recording.bin';
+        updateSystemStatus(`Fast downloading ${filename}...`);
+        showDownloadProgress(filename);
+
+        const startTime = performance.now();
+
+        // First, get file size using HEAD request
+        const headResponse = await fetch(`http://192.168.8.104:8000/recordings/fast-download/${encodeURIComponent(path)}`, {
+          method: 'HEAD'
+        });
+
+        if (!headResponse.ok) {
+          throw new Error('Failed to get file info');
+        }
+
+        const fileSize = parseInt(headResponse.headers.get('Content-Length') || '0');
+
+        if (fileSize === 0) {
+          // Fallback to regular download for unknown size
+          return downloadRecording(path);
+        }
+
+        // Calculate optimal chunk size and number of parallel connections
+        const minChunkSize = 1024 * 1024; // 1MB minimum chunk
+        const maxConnections = 6; // Optimal for most browsers/servers
+        const chunkSize = Math.max(minChunkSize, Math.ceil(fileSize / maxConnections));
+        const numChunks = Math.ceil(fileSize / chunkSize);
+
+        // Create download promises for all chunks
+        const downloadPromises = [];
+        const chunks = new Array(numChunks);
+        let totalDownloaded = 0;
+
+        for (let i = 0; i < numChunks; i++) {
+          const start = i * chunkSize;
+          const end = Math.min(start + chunkSize - 1, fileSize - 1);
+
+          downloadPromises.push(
+            fetch(`http://192.168.8.104:8000/recordings/fast-download/${encodeURIComponent(path)}`, {
+              headers: {
+                'Range': `bytes=${start}-${end}`
+              }
+            }).then(async response => {
+              if (!response.ok) {
+                throw new Error(`Failed to download chunk ${i}`);
+              }
+
+              const reader = response.body.getReader();
+              const chunkData = [];
+              let chunkReceived = 0;
+
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                chunkData.push(value);
+                chunkReceived += value.length;
+                totalDownloaded += value.length;
+
+                // Update progress
+                const percentage = Math.round((totalDownloaded / fileSize) * 100);
+                const elapsed = (performance.now() - startTime) / 1000;
+                const speed = ((totalDownloaded / (1024 * 1024)) / elapsed).toFixed(2);
+
+                updateDownloadProgressWithSpeed(percentage, speed);
+              }
+
+              // Store chunk in correct position
+              chunks[i] = new Blob(chunkData);
+              return true;
+            })
+          );
+        }
+
+        // Wait for all chunks to download
+        await Promise.all(downloadPromises);
+
+        // Combine all chunks into final blob
+        const finalBlob = new Blob(chunks, { type: 'application/octet-stream' });
+
+        // Calculate and log statistics
+        const totalTime = (performance.now() - startTime) / 1000;
+        const avgSpeed = ((fileSize / (1024 * 1024)) / totalTime).toFixed(2);
+        console.log(`Parallel download completed: ${(fileSize / (1024 * 1024)).toFixed(2)}MB in ${totalTime.toFixed(2)}s (${avgSpeed}MB/s) using ${numChunks} parallel connections`);
+
+        // Trigger download
+        const url = URL.createObjectURL(finalBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Clean up
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+
+        hideDownloadProgress();
+        updateSystemStatus(`Fast download complete: ${filename}`);
+      } catch (err) {
+        console.error('Parallel download error:', err);
+        console.log('Falling back to regular download...');
+        // Fallback to regular download on error
+        return downloadRecording(path);
       }
     }
 
@@ -1686,7 +1961,7 @@
 
       try {
         updateSystemStatus(`Deleting ${path}...`);
-        const response = await fetch(`http://192.168.8.103:8000/recordings/${path}`, {
+        const response = await fetch(`http://192.168.8.104:8000/recordings/${path}`, {
           method: 'DELETE'
         });
 
@@ -1709,7 +1984,7 @@
 
       try {
         updateSystemStatus('Cleaning up old recordings...');
-        const response = await fetch('http://192.168.8.103:8000/recordings/cleanup');
+        const response = await fetch('http://192.168.8.104:8000/recordings/cleanup');
         const data = await response.json();
 
         updateSystemStatus(`Cleanup completed: ${data.deleted} files deleted`);
@@ -1730,38 +2005,49 @@
     // Fetch IMU data
     async function fetchIMUData() {
       try {
-        const response = await fetch('http://192.168.8.103:8000/imu');
+        const response = await fetch('http://192.168.8.104:8000/imu');
         const data = await response.json();
+
         if (data && data.timestamp) {
+          // Calculate pitch and roll from accelerometer data
           let pitch = 0, roll = 0, yaw = 0;
+
           if (data.accel && data.accel.length >= 3) {
             const [ax, ay, az] = data.accel;
             pitch = Math.atan2(ay, Math.sqrt(ax * ax + az * az)) * (180 / Math.PI);
             roll = Math.atan2(-ax, az) * (180 / Math.PI);
           }
 
-          if (data.facing) {
-            const directions = {
-              "North": 0, "NE": 45, "East": 90, "SE": 135,
-              "South": 180, "SW": 225, "West": 270, "NW": 315
-            };
-            yaw = directions[data.facing] || 0;
-          }
+          // Use facing direction as yaw indicator (compass heading)
+          const directions = {
+            "North": 0, "NE": 45, "East": 90, "SE": 135,
+            "South": 180, "SW": 225, "West": 270, "NW": 315
+          };
+          yaw = directions[data.facing] || 0;
 
+          // Update display
           document.getElementById('pitch').textContent = `${pitch.toFixed(1)}°`;
           document.getElementById('roll').textContent = `${roll.toFixed(1)}°`;
           document.getElementById('yaw').textContent = `${yaw.toFixed(1)}°`;
-          document.getElementById('surface').textContent = data.surface || 'Wall';
+          document.getElementById('surface').textContent = `${data.surface || 'Unknown'} (${data.facing || 'N/A'})`;
+        } else {
+          // No data received - show waiting state
+          document.getElementById('pitch').textContent = 'Waiting...';
+          document.getElementById('roll').textContent = 'Waiting...';
+          document.getElementById('yaw').textContent = 'Waiting...';
+          document.getElementById('surface').textContent = 'No IMU Data';
         }
       } catch (err) {
         console.error('IMU fetch error:', err);
+        // Show error state
+        document.getElementById('surface').textContent = 'IMU Error';
       }
     }
 
     // Fetch controller input data
     async function fetchControllerData() {
       try {
-        const response = await fetch('http://192.168.8.103:8000/input');
+        const response = await fetch('http://192.168.8.104:8000/input');
         const data = await response.json();
         if (data && (data.action || data.timestamp)) {
           const timestamp = data.timestamp || new Date().toLocaleTimeString();
@@ -1776,11 +2062,69 @@
       }
     }
 
-    // Update data periodically
-    setInterval(() => {
+    // WiFi Signal Strength Update
+    async function updateWiFiSignal() {
+      try {
+        const response = await fetch('http://192.168.8.104:8000/wifi');
+        const data = await response.json();
+
+        const wifiIndicator = document.getElementById('wifi-indicator');
+        const wifiPercentage = document.getElementById('wifi-percentage');
+
+        if (data && data.connected) {
+          const strength = data.signal_strength || 0;
+          wifiPercentage.textContent = strength + '%';
+
+          // Remove all quality classes
+          wifiIndicator.classList.remove('excellent', 'good', 'fair', 'poor', 'disconnected');
+
+          // Add appropriate quality class based on signal strength
+          if (strength >= 80) {
+            wifiIndicator.classList.add('excellent');
+          } else if (strength >= 60) {
+            wifiIndicator.classList.add('good');
+          } else if (strength >= 40) {
+            wifiIndicator.classList.add('fair');
+          } else {
+            wifiIndicator.classList.add('poor');
+          }
+        } else {
+          wifiPercentage.textContent = '--';
+          wifiIndicator.classList.remove('excellent', 'good', 'fair', 'poor');
+          wifiIndicator.classList.add('disconnected');
+        }
+      } catch (err) {
+        console.error('WiFi fetch error:', err);
+        const wifiIndicator = document.getElementById('wifi-indicator');
+        const wifiPercentage = document.getElementById('wifi-percentage');
+        wifiPercentage.textContent = '--';
+        wifiIndicator.classList.remove('excellent', 'good', 'fair', 'poor');
+        wifiIndicator.classList.add('disconnected');
+      }
+    }
+
+    // Start fetching data immediately
+    fetchIMUData();
+    fetchControllerData();
+    updateWiFiSignal();
+
+    // Update data periodically with error recovery
+    let imuUpdateInterval = setInterval(() => {
       fetchIMUData();
       fetchControllerData();
-    }, 200);
+    }, 200);  // 5Hz update rate
+
+    // Update WiFi signal less frequently (every 2 seconds)
+    setInterval(updateWiFiSignal, 2000);
+
+    // Restart polling if connection is lost
+    window.addEventListener('online', () => {
+      clearInterval(imuUpdateInterval);
+      imuUpdateInterval = setInterval(() => {
+        fetchIMUData();
+        fetchControllerData();
+      }, 200);
+    });
 
     // Keyboard controls
     let keyPressed = {};
