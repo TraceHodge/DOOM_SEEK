@@ -216,9 +216,7 @@ latest_imu_data = {
 #get fetch request for setting start position
 @app.get("/imu")
 async def get_imu():
-    data = latest_imu_data.copy()
-    data["input"] = latest_control_input.get("input")
-    return JSONResponse(content=data)
+    return JSONResponse(content=latest_imu_data.copy())
 
 # def imu_loop reads data from the IMU sensor and updates the latest IMU data
 
@@ -276,6 +274,8 @@ async def imu_loop():
                         "surface": surf,
                         "accel": accel,
                         "gyro": gyro,
+                        "roll": roll,
+                        "pitch": pitch,
                         "yaw": yaw
                     })
                     print(f"[{timestamp}] Location: {location} | Surface: {surf}")
@@ -325,15 +325,21 @@ async def download_recording(path: str):
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Recording not found")
 
+        # Get file size for Content-Length header
+        file_size = os.path.getsize(file_path)
+
         def file_generator():
             with open(file_path, "rb") as file:
-                while chunk := file.read(8192):
+                while chunk := file.read(65536):  # 64KB chunks for faster download
                     yield chunk
 
         return StreamingResponse(
             file_generator(),
             media_type="application/octet-stream",
-            headers={"Content-Disposition": f"attachment; filename={os.path.basename(file_path)}"}
+            headers={
+                "Content-Disposition": f"attachment; filename={os.path.basename(file_path)}",
+                "Content-Length": str(file_size)
+            }
         )
 
     except FileNotFoundError:
