@@ -829,7 +829,7 @@
   <!-- Full Background Camera -->
   <div class="camera-background">
     <div class="camera-view" id="main-camera-view">
-      <iframe src="http://192.168.8.103:8889/webrtc/camB" id="main-iframe"></iframe>
+      <iframe src="http://192.168.8.104:8889/webrtc/camB" id="main-iframe"></iframe>
       <div class="camera-label" id="main-cam-label">
         <span>Inspection Camera</span>
         <div class="camera-label-separator"></div>
@@ -850,7 +850,7 @@
   <!-- Small Secondary Camera Overlay (Bottom Left) -->
   <div class="secondary-camera-overlay">
     <div class="camera-view">
-      <iframe src="http://192.168.8.103:8889/webrtc/camA" id="secondary-iframe"></iframe>
+      <iframe src="http://192.168.8.104:8889/webrtc/camA" id="secondary-iframe"></iframe>
     </div>
     <div class="camera-label" id="secondary-cam-label">Driving Camera</div>
     <div class="recording-indicator" id="secondary-recording">
@@ -1127,7 +1127,7 @@
         if (video && video.captureStream) {
           stream = video.captureStream();
         } else {
-          const response = await fetch('http://192.168.8.103:8000/proxy-record', {
+          const response = await fetch('http://192.168.8.104:8000/proxy-record', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1222,7 +1222,7 @@
       const indicator = document.getElementById(`${camera}-recording`);
       
       if (recordingState[camera]?.proxy) {
-        const response = await fetch('http://192.168.8.103:8000/proxy-record', {
+        const response = await fetch('http://192.168.8.104:8000/proxy-record', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1253,7 +1253,7 @@
         let video = document.getElementById(`hidden-${camera}-video`);
         
         if (!video || !video.videoWidth) {
-          const response = await fetch('http://192.168.8.103:8000/proxy-snapshot', {
+          const response = await fetch('http://192.168.8.104:8000/proxy-snapshot', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1453,7 +1453,7 @@
           break;
       }
 
-      fetch('http://192.168.8.103:8000/control', {
+      fetch('http://192.168.8.104:8000/control', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1485,7 +1485,7 @@
       const action = direction === 'in' ? 'Zoom In' : 'Zoom Out';
       updateSystemStatus(`Camera ${action.toLowerCase()}`);
 
-      fetch('http://192.168.8.103:8000/control', {
+      fetch('http://192.168.8.104:8000/control', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1517,7 +1517,7 @@
     function toggleLED() {
       updateSystemStatus('LED state toggled');
 
-      fetch('http://192.168.8.103:8000/control', {
+      fetch('http://192.168.8.104:8000/control', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1536,7 +1536,7 @@
     async function refreshRecordings() {
       updateSystemStatus('Refreshing recordings list...');
       try {
-        const response = await fetch('http://192.168.8.103:8000/recordings');
+        const response = await fetch('http://192.168.8.104:8000/recordings');
         const data = await response.json();
         displayRecordings(data.recordings);
         updateSystemStatus(`Found ${data.recordings.length} recordings`);
@@ -1584,7 +1584,7 @@
         // Show progress bar
         showDownloadProgress(filename);
         
-        const response = await fetch(`http://192.168.8.103:8000/recordings/download/${encodeURIComponent(path)}`);
+        const response = await fetch(`http://192.168.8.104:8000/recordings/download/${encodeURIComponent(path)}`);
 
         if (!response.ok) {
           throw new Error('Download failed');
@@ -1686,7 +1686,7 @@
 
       try {
         updateSystemStatus(`Deleting ${path}...`);
-        const response = await fetch(`http://192.168.8.103:8000/recordings/${path}`, {
+        const response = await fetch(`http://192.168.8.104:8000/recordings/${path}`, {
           method: 'DELETE'
         });
 
@@ -1709,7 +1709,7 @@
 
       try {
         updateSystemStatus('Cleaning up old recordings...');
-        const response = await fetch('http://192.168.8.103:8000/recordings/cleanup');
+        const response = await fetch('http://192.168.8.104:8000/recordings/cleanup');
         const data = await response.json();
 
         updateSystemStatus(`Cleanup completed: ${data.deleted} files deleted`);
@@ -1730,7 +1730,7 @@
     // Fetch IMU data
     async function fetchIMUData() {
       try {
-        const response = await fetch('http://192.168.8.103:8000/imu');
+        const response = await fetch('http://192.168.8.104:8000/imu');
         const data = await response.json();
         if (data && data.timestamp) {
           let pitch = 0, roll = 0, yaw = 0;
@@ -1761,7 +1761,7 @@
     // Fetch controller input data
     async function fetchControllerData() {
       try {
-        const response = await fetch('http://192.168.8.103:8000/input');
+        const response = await fetch('http://192.168.8.104:8000/input');
         const data = await response.json();
         if (data && (data.action || data.timestamp)) {
           const timestamp = data.timestamp || new Date().toLocaleTimeString();
