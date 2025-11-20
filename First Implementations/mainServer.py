@@ -318,7 +318,7 @@ async def list_recordings():
 
 @app.get("/recordings/download/{path:path}")
 async def download_recording(path: str):
-    """Download a specific recording file"""
+    """Download a specific recording file with optimized streaming"""
     try:
         file_path = os.path.join("./recordings", path)
 
@@ -330,7 +330,7 @@ async def download_recording(path: str):
 
         def file_generator():
             with open(file_path, "rb") as file:
-                while chunk := file.read(65536):  # 64KB chunks for faster download
+                while chunk := file.read(524288):  # 512KB chunks for maximum speed
                     yield chunk
 
         return StreamingResponse(
@@ -338,7 +338,9 @@ async def download_recording(path: str):
             media_type="application/octet-stream",
             headers={
                 "Content-Disposition": f"attachment; filename={os.path.basename(file_path)}",
-                "Content-Length": str(file_size)
+                "Content-Length": str(file_size),
+                "Cache-Control": "no-cache",
+                "Accept-Ranges": "bytes"
             }
         )
 

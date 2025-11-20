@@ -1579,15 +1579,15 @@
       `).join('');
     }
 
-    // Enhanced download function with progress bar
+    // Optimized download function with progress bar
     async function downloadRecording(path) {
       try {
         const filename = path.split('/').pop() || 'recording.bin';
         updateSystemStatus(`Downloading ${filename}...`);
-        
+
         // Show progress bar
         showDownloadProgress(filename);
-        
+
         const response = await fetch(`http://192.168.8.104:8000/recordings/download/${encodeURIComponent(path)}`);
 
         if (!response.ok) {
@@ -1602,28 +1602,38 @@
           const reader = response.body.getReader();
           const chunks = [];
           let received = 0;
+          let lastUpdatePercent = 0;
 
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
-            
+
             chunks.push(value);
             received += value.length;
-            
-            // Update progress
+
+            // Update progress only every 2% to reduce DOM operations
             const percentage = Math.round((received / total) * 100);
-            updateDownloadProgress(percentage);
+            if (percentage >= lastUpdatePercent + 2 || percentage === 100) {
+              updateDownloadProgress(percentage);
+              lastUpdatePercent = percentage;
+            }
           }
 
-          const blob = new Blob(chunks);
+          // Create blob with explicit type for better performance
+          const blob = new Blob(chunks, { type: 'application/octet-stream' });
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
           link.download = filename;
+          link.style.display = 'none';
           document.body.appendChild(link);
           link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
+
+          // Cleanup after a short delay to ensure download starts
+          setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }, 100);
         } else {
           // No content length, just download directly
           const blob = await response.blob();
@@ -1631,10 +1641,14 @@
           const link = document.createElement('a');
           link.href = url;
           link.download = filename;
+          link.style.display = 'none';
           document.body.appendChild(link);
           link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
+
+          setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }, 100);
         }
 
         hideDownloadProgress();
