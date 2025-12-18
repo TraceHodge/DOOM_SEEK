@@ -1,5 +1,0 @@
-open the camstream file in terminal then type:
- ./mediamtx
-
-open camstreamfile in another terminal then run: 
-ffmpeg -f v4l2 -input_format yuyv422 -framerate 30 -video_size 640x480 -i /dev/video0   -vcodec libx264 -preset ultrafast -tune zerolatency -f rtsp rtsp://localhost:8554/cam
