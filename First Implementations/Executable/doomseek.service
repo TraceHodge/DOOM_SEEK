@@ -1,0 +1,21 @@
+[Unit]
+Description=DOOMSEEK Robot Control System
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+User=pi
+WorkingDirectory=/home/doom-seek/Desktop/DOOM
+ExecStart=/home/doom-seek/Desktop/DOOM/start_all.sh
+ExecStop=/home/doom-seek/Desktop/DOOM/stop_all.sh
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment variables if needed
+Environment="PYTHONUNBUFFERED=1"
+
+[Install]
+WantedBy=multi-user.target
