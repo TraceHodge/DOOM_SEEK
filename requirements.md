@@ -15,3 +15,8 @@ Then for the Client, you will need to install the following packages:
 * Requests (for making HTTP requests to the server)
 
 *Look at docs folder for pictures of clients packages*
+
+** Now for the static ip address **
+Look At the static ip creation video in the readme to create a static ip for the raspberry pi after new the rounter is setup.
+Once the static ip is created then go into the idex.html client code and change all the ip address for example http://192.168.8.104:8000/input
+change the 192.168.8.104 to your newly created static ip address. 
